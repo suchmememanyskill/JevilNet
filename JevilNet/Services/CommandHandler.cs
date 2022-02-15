@@ -51,6 +51,16 @@ public class CommandHandler
         _client.MessageReceived += MessageReceivedAsync;
     }
 
+    public async Task DeInitialiseAsync()
+    {
+        _client.InteractionCreated -= HandleInteraction;
+        _interactionCommands.SlashCommandExecuted -= SlashInteractionCommandExecuted;
+        _interactionCommands.ContextCommandExecuted -= ContextInteractionCommandExecuted;
+        _interactionCommands.ComponentCommandExecuted -= ComponentInteractionCommandExecuted;
+        _textCommands.CommandExecuted -= CommandExecutedAsync;
+        _client.MessageReceived -= MessageReceivedAsync;
+    }
+
     # region Interaction Error Handling
 
     private Task ComponentInteractionCommandExecuted(ComponentCommandInfo arg1, Discord.IInteractionContext arg2,

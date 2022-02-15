@@ -8,9 +8,30 @@ namespace JevilNet.Modules.TextCommands;
 
 public class Utils : ModuleBase<SocketCommandContext>
 {
+    public CommandHandler Handler { get; set; }
+    
     [Command("ping")]
     [Alias("pong", "hello")]
     [Summary("Returns pong")]
     public Task PingAsync()
         => ReplyAsync("pong!");
+
+    [Command("stop")]
+    [Alias("kill")]
+    [Summary("Stops the bot")]
+    public async Task StopBot()
+    {
+        await ReplyAsync("Cya!");
+        await Task.Delay(1000);
+        await Handler.DeInitialiseAsync();
+        await Context.Client.StopAsync();
+        new Thread(() => // How am i supposed to shutdown normally?
+        {
+            Thread.Sleep(5000);
+            Environment.Exit(0);
+        }).Start();
+        await Context.Client.LogoutAsync();
+    }
+    
+    
 }
