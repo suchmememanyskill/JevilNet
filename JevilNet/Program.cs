@@ -58,10 +58,16 @@ class Program
         client.Ready += async ( ) =>
         {
             if (IsDebug())
+            {
                 // Id of the test guild can be provided from the Configuration object
                 await commands.RegisterCommandsToGuildAsync(configuration.GetValue<ulong>("testServer"), true);
+                Console.WriteLine("Setting commands on debug server...");
+            }
             else
+            {
                 await commands.RegisterCommandsGloballyAsync(true);
+                Console.WriteLine("Setting commands on all servers...");
+            }
         };
 
         // Here we can initialize the service that will register and execute our commands
