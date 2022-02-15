@@ -186,6 +186,18 @@ public class CommandHandler
             return;
         if (message.Source != MessageSource.User)
             return;
+        
+
+        if (rawMessage.Channel is SocketDMChannel dmChannel)
+        {
+            SocketChannel channel = _client.GetChannel(_config.GetValue<ulong>("logChannel"));
+            string text =
+                $"```\n[DM] <{rawMessage.Author.Username}> {rawMessage.Content.Replace("```", "'''")}\n```";
+            if (channel is ITextChannel textChannel)
+                await textChannel.SendMessageAsync(text);
+            
+            Console.WriteLine(text);
+        }
 
         // This value holds the offset where the prefix ends
         var argPos = 0;

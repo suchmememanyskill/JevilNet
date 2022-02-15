@@ -30,6 +30,7 @@ class Program
             "prefix",
             "token",
             "testServer",
+            "logChannel",
         };
         if (config.GetChildren().Count(x => required.Contains(x.Key)) != required.Count())
             throw new Exception("Missing configuration...");
@@ -51,7 +52,6 @@ class Program
         client.Log += LogAsync;
         commands.Log += LogAsync;
         services.GetRequiredService<CommandService>().Log += LogAsync;
-
         // Slash Commands and Context Commands are can be automatically registered, but this process needs to happen after the client enters the READY state.
         // Since Global Commands take around 1 hour to register, we should use a test guild to instantly update and test our commands. To determine the method we should
         // register the commands with, we can check whether we are in a DEBUG environment and if we are, we can register the commands to a predetermined test guild.
