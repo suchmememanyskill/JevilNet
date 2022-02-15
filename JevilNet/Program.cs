@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Discord.Rest;
 using JevilNet.Services;
 using JevilNet.Services.Vote;
 
@@ -61,7 +62,14 @@ class Program
                 // Id of the test guild can be provided from the Configuration object
                 await commands.RegisterCommandsToGuildAsync(configuration.GetValue<ulong>("testServer"), true);
             else
+            {
+                IEnumerable<RestGuildCommand> cmds = await commands.RegisterCommandsToGuildAsync(configuration.GetValue<ulong>("testServer"), true);
+                foreach (var restGuildCommand in cmds)
+                {
+                    await restGuildCommand.DeleteAsync();
+                }
                 await commands.RegisterCommandsGloballyAsync(true);
+            }
         };
 
         // Here we can initialize the service that will register and execute our commands
