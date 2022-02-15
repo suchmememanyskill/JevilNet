@@ -40,32 +40,27 @@ public class Utils : ModuleBase<SocketCommandContext>
     public Task Source() => ReplyAsync("https://github.com/suchmememanyskill/JevilNet");
 
     [Command("say")]
-    [Summary("Sends a message on the bots behalf")]
-    public async Task Say(string message, ITextChannel channel = null)
+    [Summary("Sends a message on the bots behalf. Put in a channel id to send in that specific channel")]
+    public async Task Say([Remainder] string message)
     {
-        if (channel == null)
+        string[] split = message.Split(" ", 2);
+        if (ulong.TryParse(split[0], out ulong result))
         {
-            await ReplyAsync(message, allowedMentions: AllowedMentions.None);
+            var channel = Client.GetChannel(result);
+            if (channel is ITextChannel textChannel)
+            {
+                await textChannel.SendMessageAsync(split[1], allowedMentions: AllowedMentions.None);
+                await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
+                return;
+            }
         }
-        else
-        {
-            await channel.SendMessageAsync(message, allowedMentions: AllowedMentions.None);
-            await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
-        }
+        
+        await ReplyAsync(message, allowedMentions: AllowedMentions.None);
     }
 
-    [Command("dm")]
-    [Summary("Dms a user a message")]
-    public async Task Dm(IUser user, string message)
-    {
-        var dmChannel = await user.CreateDMChannelAsync();
-        await dmChannel.SendMessageAsync(message);
-        await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
-    }
-    
     [Command("dmid")]
     [Summary("Dms a user a message via a user id")]
-    public async Task DmId(ulong userId, string message)
+    public async Task DmId(ulong userId, [Remainder] string message)
     {
         var user = Client.GetUser(userId);
         var dmChannel = await user.CreateDMChannelAsync();
@@ -75,7 +70,7 @@ public class Utils : ModuleBase<SocketCommandContext>
 
     [Command("game")]
     [Summary("Sets the playing text on the bot")]
-    public async Task SetGame(string game = "")
+    public async Task SetGame([Remainder] string game = "")
     {
         await Client.SetGameAsync(game);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
