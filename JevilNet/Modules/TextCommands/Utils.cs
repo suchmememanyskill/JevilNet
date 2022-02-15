@@ -33,5 +33,7 @@ public class Utils : ModuleBase<SocketCommandContext>
         await Context.Client.LogoutAsync();
     }
     
-    
+    [Command("source")]
+    [Summary("Gives a link to the source code of this bot")]
+    public Task Source() => ReplyAsync("https://github.com/suchmememanyskill/JevilNet");
 }
