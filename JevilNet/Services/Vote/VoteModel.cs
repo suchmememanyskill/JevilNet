@@ -8,4 +8,5 @@ public class VoteModel
     public int MaxPerPerson { get; set; }
     public int MinPerPerson { get; set; }
     public bool Active { get; set; } = false;
+    public ulong CreatorId { get; set; } = 0;
 }

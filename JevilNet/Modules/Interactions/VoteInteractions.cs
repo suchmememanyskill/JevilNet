@@ -10,11 +10,21 @@ namespace JevilNet.Modules.Interactions;
 public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
 {
     public VoteService VoteService { get; set; }
+
+    private VoteModel? model;
+
+    private VoteModel GetModel()
+    {
+        if (model == null)
+            model = VoteService.GetModel(Context.Guild.Id);
+
+        return model;
+    }
     
     [ComponentInteraction("vote_start_button")]
     public async Task NoteAdd()
     {
-        if (VoteService.Active)
+        if (GetModel().Active)
             return;
         
         await Context.Interaction.RespondWithModalAsync<VoteCreateModal>("vote_start_modal");
@@ -40,19 +50,19 @@ public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
             return;
         }
             
-        await VoteService.Start(modal.Name, options, max, min);
+        await VoteService.Start(Context.Guild.Id, Context.User.Id, modal.Name, options, max, min);
 
-        ComponentBuilder builder = VoteService.BuildMainView();
+        ComponentBuilder builder = VoteService.BuildMainView(Context.Guild.Id);
         await RespondAsync("Created vote successfully!", components: builder.Build());
     }
     
     [ComponentInteraction("vote_my_votes")]
     public async Task DisplayOwnVotes()
     {
-        if (!VoteService.Active)
+        if (!GetModel().Active)
             return;
         
-        List<string> votes = VoteService.GetUserVotes(Context.User.Id);
+        List<string> votes = VoteService.GetUserVotes(Context.Guild.Id, Context.User.Id);
         if (votes.Count < 1)
             await RespondAsync("You have not voted on any option", ephemeral: true);
         else
@@ -62,15 +72,15 @@ public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
     [ComponentInteraction("vote_delete")]
     public async Task DeleteOwnVotes()
     {
-        if (!VoteService.Active)
+        if (!GetModel().Active)
             return;
         
-        List<string> votes = VoteService.GetUserVotes(Context.User.Id);
+        List<string> votes = VoteService.GetUserVotes(Context.Guild.Id, Context.User.Id);
         if (votes.Count < 1)
             await RespondAsync("You have not voted on any option", ephemeral: true);
         else
         {
-            await VoteService.RemoveVote(Context.User.Id);
+            await VoteService.RemoveVote(Context.Guild.Id, Context.User.Id);
             await RespondAsync("Votes removed", ephemeral: true);
         }
     }
@@ -78,19 +88,19 @@ public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
     [ComponentInteraction("vote_menu")]
     public async Task VoteMenu(params string[] args)
     {
-        if (!VoteService.Active)
+        if (!GetModel().Active)
             return;
         
-        List<int> votes = args.ToList().Select(x => int.Parse(x)).Where(x => x >= 0 && x < VoteService.Options.Count).ToList();
+        List<int> votes = args.ToList().Select(x => int.Parse(x)).Where(x => x >= 0 && x < GetModel().Options.Count).ToList();
 
-        if (votes.Count != args.Length || votes.Count > VoteService.MaxPerPerson ||
-            votes.Count < VoteService.MinPerPerson)
+        if (votes.Count != args.Length || votes.Count > GetModel().MaxPerPerson ||
+            votes.Count < GetModel().MinPerPerson)
         {
             await RespondAsync("Invalid vote. Are you using an old vote to vote?", ephemeral: true);
             return;
         }
         
-        await VoteService.AddVote(Context.User.Id, votes);
+        await VoteService.AddVote(Context.Guild.Id, Context.User.Id, votes);
         await RespondAsync("Successfully voted", ephemeral: true);
     }
 

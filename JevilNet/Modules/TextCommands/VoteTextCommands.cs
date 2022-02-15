@@ -7,6 +7,7 @@ namespace JevilNet.Modules.TextCommands;
 
 [Group("vote")]
 [Alias("votes")]
+[RequireContext(ContextType.Guild)]
 public class VoteTextCommands : ModuleBase<SocketCommandContext>
 {
     public VoteService VoteService { get; set; }
@@ -15,9 +16,9 @@ public class VoteTextCommands : ModuleBase<SocketCommandContext>
     [Summary("Initiates the vote interaction menu")]
     public async Task InitiateVoteMenu()
     {
-        if (VoteService.Active)
+        if (VoteService.GetModel(Context.Guild.Id).Active)
         {
-            await ReplyAsync("A vote is currently active", components: VoteService.BuildMainView().Build());
+            await ReplyAsync("A vote is currently active", components: VoteService.BuildMainView(Context.Guild.Id).Build());
         }
         else
         {
@@ -46,30 +47,32 @@ public class VoteTextCommands : ModuleBase<SocketCommandContext>
             return;
         }
 
-        await VoteService.Start(name, new List<string>(options), max, min);
+        await VoteService.Start(Context.Guild.Id, Context.User.Id, name, new List<string>(options), max, min);
 
-        ComponentBuilder builder = VoteService.BuildMainView();
+        ComponentBuilder builder = VoteService.BuildMainView(Context.Guild.Id);
         await ReplyAsync("Created vote successfully!", components: builder.Build());
     }
 
     [Command("tally")]
-    [RequireUserPermission(GuildPermission.Administrator)]
     [VoteActive]
-    [Summary("Dms a tally of the votes to the user.")]
+    [VoteCreator(Group = "Permission")]
+    [RequireOwner(Group = "Permission")]
+    [Summary("Dms a tally of the votes to the user")]
     public async Task DmTally()
     {
-        await Context.User.SendMessageAsync(embed: VoteService.BuildTallyEmbed().Build());
+        await Context.User.SendMessageAsync(embed: VoteService.BuildTallyEmbed(Context.Guild.Id).Build());
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
 
     [Command("end")]
-    [RequireUserPermission(GuildPermission.Administrator)]
     [VoteActive]
+    [VoteCreator(Group = "Permission")]
+    [RequireOwner(Group = "Permission")]
     [Summary("Ends a vote")]
     public async Task EndVote()
     {
-        await ReplyAsync(embed: VoteService.BuildTallyEmbed().Build());;
-        await VoteService.EndVote();
+        await ReplyAsync(embed: VoteService.BuildTallyEmbed(Context.Guild.Id).Build());;
+        await VoteService.EndVote(Context.Guild.Id);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
 }

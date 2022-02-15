@@ -31,6 +31,7 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
     };
 
     [SlashCommand("voiceactivity", "Creates an invite for a discord voice activity")]
+    [RequireContext(ContextType.Guild)]
     public async Task VoiceActivity([Autocomplete(typeof(DiscordActivityAutocomplete))] string appId, IVoiceChannel voice)
     {
         DiscordActivity? activity = activities.Find(x => x.appId == appId);
@@ -71,6 +72,9 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
             IParameterInfo parameter, IServiceProvider services)
         {
+            if (context.Guild == null)
+                return AutocompletionResult.FromError(new Exception("Guild is null"));
+            
             return AutocompletionResult.FromSuccess(activities
                 .Where(x => x.tier <= context.Guild.PremiumTier)
                 .Select(x => new AutocompleteResult(x.displayName, x.appId))

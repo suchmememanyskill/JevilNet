@@ -2,39 +2,23 @@
 
 namespace JevilNet.Services.Vote;
 
-public class VoteService : BaseService<VoteModel>
+public class VoteService : BaseService<VoteModelHolder>
 {
     public record VoteTally(string option, int count);
 
     public VoteService() => Load();
     public override string StoragePath() => "./Storage/vote.json";
 
-    public bool Active
-    {
-        get => storage.Active;
-    }
+    public VoteModel GetModel(ulong guildId) => storage.VoteHolder.ContainsKey(guildId) ? storage.VoteHolder[guildId] : new();
 
-    public string Name
+    public bool IsCreator(ulong guildId, ulong userId) => GetModel(guildId).CreatorId == userId;
+    public async Task SetModel(ulong guildId, VoteModel model)
     {
-        get => storage.Name;
-    }
-
-    public List<string> Options
-    {
-        get => storage.Options;
+        storage.VoteHolder[guildId] = model;
+        await Save();
     }
     
-    public int MaxPerPerson
-    {
-        get => storage.MaxPerPerson;
-    }
-    
-    public int MinPerPerson
-    {
-        get => storage.MinPerPerson;
-    }
-
-    public async Task Start(string name, List<string> options, int maxPerPerson, int minPerPerson)
+    public async Task Start(ulong guildId, ulong creatorId, string name, List<string> options, int maxPerPerson, int minPerPerson)
     {
         if (maxPerPerson > options.Count)
             maxPerPerson = options.Count;
@@ -48,41 +32,45 @@ public class VoteService : BaseService<VoteModel>
         if (options.Count < 1)
             throw new Exception("No vote options!");
 
-        storage.Name = name;
-        storage.Options = options;
-        storage.MaxPerPerson = maxPerPerson;
-        storage.MinPerPerson = minPerPerson;
-        storage.UserVotes.Clear();
-        storage.Active = true;
-        await Save();
+        VoteModel model = new();
+
+        model.Name = name;
+        model.Options = options;
+        model.MaxPerPerson = maxPerPerson;
+        model.MinPerPerson = minPerPerson;
+        model.UserVotes.Clear();
+        model.Active = true;
+        model.CreatorId = creatorId;
+        await SetModel(guildId, model);
     }
 
-    public async Task AddVote(ulong memberId, List<int> indexes)
+    public async Task AddVote(ulong guildId, ulong memberId, List<int> indexes)
     {
-        storage.UserVotes[memberId] = indexes;
+        GetModel(guildId).UserVotes[memberId] = indexes;
         await Save();
     }
 
-    public async Task RemoveVote(ulong memberId)
+    public async Task RemoveVote(ulong guildId, ulong memberId)
     {
-        storage.UserVotes.Remove(memberId);
+        GetModel(guildId).UserVotes.Remove(memberId);
         await Save();
     }
 
-    public List<string> GetUserVotes(ulong memberId) => (storage.UserVotes.ContainsKey(memberId))
-        ? storage.UserVotes[memberId].Select(x => Options[x]).ToList()
+    public List<string> GetUserVotes(ulong guildId, ulong memberId) => (GetModel(guildId).UserVotes.ContainsKey(memberId))
+        ? GetModel(guildId).UserVotes[memberId].Select(x => GetModel(guildId).Options[x]).ToList()
         : new();
 
-    public async Task EndVote()
+    public async Task EndVote(ulong guildId)
     {
-        storage.Active = false;
-        await Save();
+        if (storage.VoteHolder.Remove(guildId))
+            await Save();
     }
-    
-    public List<VoteTally> Tally()
+
+    public List<VoteTally> Tally(ulong guildId)
     {
+        VoteModel model = GetModel(guildId);
         Dictionary<int, int> localTally = new();
-        foreach (var (key, value) in storage.UserVotes)
+        foreach (var (key, value) in model.UserVotes)
         {
             value.ForEach(x =>
             {
@@ -96,22 +84,24 @@ public class VoteService : BaseService<VoteModel>
         List<VoteTally> tally = new();
         foreach (var (key, value) in localTally)
         {
-            tally.Add(new(Options[key], value));
+            tally.Add(new(model.Options[key], value));
         }
 
         return tally.OrderByDescending(x => x.count).ToList();
     }
 
-    public ComponentBuilder BuildMainView()
+    public ComponentBuilder BuildMainView(ulong guildId)
     {
+        VoteModel model = GetModel(guildId);
+        
         var menuBuilder = new SelectMenuBuilder()
             .WithPlaceholder("Vote on an option!")
             .WithCustomId("vote_menu")
-            .WithMinValues(storage.MinPerPerson)
-            .WithMaxValues(storage.MaxPerPerson);
+            .WithMinValues(model.MinPerPerson)
+            .WithMaxValues(model.MaxPerPerson);
 
         int i = 0;
-        Options.ForEach(x => menuBuilder.AddOption(x, i++.ToString()));
+        model.Options.ForEach(x => menuBuilder.AddOption(x, i++.ToString()));
 
         return new ComponentBuilder()
             .WithSelectMenu(menuBuilder)
@@ -119,8 +109,8 @@ public class VoteService : BaseService<VoteModel>
             .WithButton("Delete vote", "vote_delete", style: ButtonStyle.Danger);
     }
 
-    public EmbedBuilder BuildTallyEmbed() => new EmbedBuilder()
-        .WithTitle(storage.Name)
-        .WithDescription(string.Join("\n", Tally().Select(x => $"{x.count} votes on {x.option}")))
+    public EmbedBuilder BuildTallyEmbed(ulong guildId) => new EmbedBuilder()
+        .WithTitle(GetModel(guildId).Name)
+        .WithDescription(string.Join("\n", Tally(guildId).Select(x => $"{x.count} votes on {x.option}")))
         .WithColor(Color.Magenta);
 }

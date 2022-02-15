@@ -5,7 +5,7 @@ using JevilNet.Services;
 
 namespace JevilNet.Modules.TextCommands;
 
-[Discord.Commands.Group("note")]
+[Group("note")]
 [Alias("notes")]
 [Summary("Text commands for note module")]
 public class NoteTextCommands : ModuleBase<SocketCommandContext>
