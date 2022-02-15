@@ -89,8 +89,8 @@ public class NoteService : BaseService<NoteStorage>
                     .WithColor(Color.Green);
 
                 client.GetUser(x.MemberId).SendMessageAsync("The timer is up!", embed: builder.Build()).GetAwaiter().GetResult();
-                RemoveReminder(x.MemberId, x.NoteId).GetAwaiter().GetResult();
             }
+            RemoveReminder(x.MemberId, x.NoteId).GetAwaiter().GetResult();
         });
     }
 }
