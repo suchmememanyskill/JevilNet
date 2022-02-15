@@ -56,6 +56,7 @@ public class Utils : ModuleBase<SocketCommandContext>
         }
         
         await ReplyAsync(message, allowedMentions: AllowedMentions.None);
+        await Context.Message.DeleteAsync();
     }
 
     [Command("dmid")]

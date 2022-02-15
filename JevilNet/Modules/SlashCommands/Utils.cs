@@ -12,12 +12,11 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
     public async Task Say(string message, ISocketMessageChannel channel = null)
     {
         if (channel == null)
-            await RespondAsync(message, allowedMentions: AllowedMentions.None);
+            await ReplyAsync(message, allowedMentions: AllowedMentions.None);
         else
-        {
             await channel.SendMessageAsync(message, allowedMentions: AllowedMentions.None);
-            await RespondAsync("Message sent", ephemeral: true);
-        }
+
+        await RespondAsync("Message sent", ephemeral: true);
     }
 
     [SlashCommand("dm", "Dms a user a message")]
