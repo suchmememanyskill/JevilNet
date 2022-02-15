@@ -27,15 +27,6 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
         await dmChannel.SendMessageAsync(message);
         await RespondAsync("Message sent", ephemeral: true);
     }
-    
-    [SlashCommand("dmid", "Dms a user a message via a user id")]
-    public async Task DmId(ulong userId, string message)
-    {
-        var user = Client.GetUser(userId);
-        var dmChannel = await user.CreateDMChannelAsync();
-        await dmChannel.SendMessageAsync(message);
-        await RespondAsync("Message sent", ephemeral: true);
-    }
 
     [SlashCommand("game", "Sets the playing text on the bot")]
     public async Task SetGame(string game = "")

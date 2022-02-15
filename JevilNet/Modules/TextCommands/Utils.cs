@@ -62,6 +62,16 @@ public class Utils : ModuleBase<SocketCommandContext>
         await dmChannel.SendMessageAsync(message);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
+    
+    [Command("dmid")]
+    [Summary("Dms a user a message via a user id")]
+    public async Task DmId(ulong userId, string message)
+    {
+        var user = Client.GetUser(userId);
+        var dmChannel = await user.CreateDMChannelAsync();
+        await dmChannel.SendMessageAsync(message);
+        await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
+    }
 
     [Command("game")]
     [Summary("Sets the playing text on the bot")]
