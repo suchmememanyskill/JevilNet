@@ -8,13 +8,9 @@ namespace JevilNet.Modules.TextCommands;
 
 public class Utils : ModuleBase<SocketCommandContext>
 {
-    [TextCommand("ping")]
+    [Command("ping")]
     [Alias("pong", "hello")]
     [Summary("Returns pong")]
     public Task PingAsync()
         => ReplyAsync("pong!");
-/*
-    [TextCommand("help", "Shows this message")]
-    public Task GenerateAndShowHelp() => ReplyAsync(TextHelp.GenerateHelp());
-*/
 }

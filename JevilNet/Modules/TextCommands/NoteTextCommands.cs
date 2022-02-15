@@ -23,7 +23,7 @@ public class NoteTextCommands : ModuleBase<SocketCommandContext>
         await ReplyAsync("Welcome to notes!", components: builder.Build());
     }
 
-    [TextCommand("add")]
+    [Command("add")]
     [Summary("Adds a note via a text command")]
     public async Task AddNoteWithText([Summary("Hello")] string name, params string[] content)
     {
