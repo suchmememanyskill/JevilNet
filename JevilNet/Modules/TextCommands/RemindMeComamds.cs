@@ -20,7 +20,7 @@ public class RemindMeComamds : ModuleBase<SocketCommandContext>
     
     private async Task RemindMe(bool keep, TimeSpan time, string text)
     {
-        if (time.TotalMinutes <= 1)
+        if (time.TotalMinutes < 1)
         {
             await ReplyAsync("Invalid input");
             return;
