@@ -190,7 +190,7 @@ public class CommandHandler
 
         if (rawMessage.Channel is SocketDMChannel dmChannel)
         {
-            SocketChannel channel = _client.GetChannel(_config.GetValue<ulong>("logChannel"));
+            IChannel channel = await _client.GetChannelAsync(_config.GetValue<ulong>("logChannel"));
             string text =
                 $"```\n[DM] <{rawMessage.Author.Username}> {rawMessage.Content.Replace("```", "'''")}\n```";
             if (channel is ITextChannel textChannel)

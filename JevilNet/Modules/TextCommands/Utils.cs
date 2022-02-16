@@ -46,7 +46,7 @@ public class Utils : ModuleBase<SocketCommandContext>
         string[] split = message.Split(" ", 2);
         if (ulong.TryParse(split[0], out ulong result))
         {
-            var channel = Client.GetChannel(result);
+            var channel = await Client.GetChannelAsync(result);
             if (channel is ITextChannel textChannel)
             {
                 await textChannel.SendMessageAsync(split[1], allowedMentions: AllowedMentions.None);
@@ -63,7 +63,7 @@ public class Utils : ModuleBase<SocketCommandContext>
     [Summary("Dms a user a message via a user id")]
     public async Task DmId(ulong userId, [Remainder] string message)
     {
-        var user = Client.GetUser(userId);
+        var user = await Client.GetUserAsync(userId);
         var dmChannel = await user.CreateDMChannelAsync();
         await dmChannel.SendMessageAsync(message);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));

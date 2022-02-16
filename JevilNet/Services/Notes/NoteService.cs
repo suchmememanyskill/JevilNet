@@ -74,10 +74,10 @@ public class NoteService : BaseService<NoteStorage>
 
     public Note? GetNote(ulong memberId, int noteId) => GetNotes(memberId).Find(x => x.Id == noteId);
 
-    private void SearchForExpiredReminders(object state)
+    private async Task SearchForExpiredRemindersAsync()
     {
         Console.WriteLine($"{DateTime.Now}: Scanning for expired note reminders");
-        storage.NoteReminders.Where(x => x.AlertWhen < DateTimeOffset.Now).ToList().ForEach(x =>
+        foreach (var x in storage.NoteReminders.Where(x => x.AlertWhen < DateTimeOffset.Now).ToList())
         {
             Note? note = GetNote(x.MemberId, x.NoteId);
 
@@ -88,11 +88,17 @@ public class NoteService : BaseService<NoteStorage>
                     .WithDescription(note.Contents)
                     .WithColor(Color.Green);
 
-                client.GetUser(x.MemberId).SendMessageAsync("The timer is up!", embed: builder.Build()).GetAwaiter().GetResult();
+                IUser user = await client.GetUserAsync(x.MemberId);
+                IDMChannel channel = await user.CreateDMChannelAsync();
+                await channel.SendMessageAsync("The timer is up!", embed: builder.Build());
+
                 if (x.DeleteNoteAfter)
-                    Delete(x.MemberId, x.NoteId).GetAwaiter().GetResult();
+                    await Delete(x.MemberId, x.NoteId);
             }
-            RemoveReminder(x.MemberId, x.NoteId).GetAwaiter().GetResult();
-        });
+
+            await RemoveReminder(x.MemberId, x.NoteId);
+        };
     }
+
+    private void SearchForExpiredReminders(object state) => SearchForExpiredRemindersAsync().GetAwaiter().GetResult();
 }

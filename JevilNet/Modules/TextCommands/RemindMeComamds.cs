@@ -28,6 +28,6 @@ public class RemindMeComamds : ModuleBase<SocketCommandContext>
 
         Note newNote = await NoteService.Add(Context.User.Id, $"Reminder in {time.ToString()}", text);
         NoteReminder reminder = await NoteService.AddReminder(Context.User.Id, newNote.Id, Convert.ToInt32(time.TotalMinutes), !keep);
-        await ReplyAsync($"Scheduled reminder in <t:{reminder!.AlertWhen.ToUnixTimeSeconds()}:R>");
+        await ReplyAsync($"Scheduled reminder <t:{reminder!.AlertWhen.ToUnixTimeSeconds()}:R>");
     }
 }
