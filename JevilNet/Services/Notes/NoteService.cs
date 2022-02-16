@@ -32,13 +32,13 @@ public class NoteService : BaseService<NoteStorage>
         return newNote;
     }
 
-    public async Task<NoteReminder?> AddReminder(ulong memberId, int noteId, int minutesFromNow)
+    public async Task<NoteReminder?> AddReminder(ulong memberId, int noteId, int minutesFromNow, bool deleteNoteAfter = false)
     {
         await RemoveReminder(memberId, noteId);
         
         if (minutesFromNow > 0)
         {
-            NoteReminder reminder = new NoteReminder(memberId, noteId, DateTime.Now.AddMinutes(minutesFromNow));
+            NoteReminder reminder = new NoteReminder(memberId, noteId, DateTime.Now.AddMinutes(minutesFromNow), deleteNoteAfter);
             storage.NoteReminders.Add(reminder);
             await Save();
             return reminder;
@@ -89,6 +89,8 @@ public class NoteService : BaseService<NoteStorage>
                     .WithColor(Color.Green);
 
                 client.GetUser(x.MemberId).SendMessageAsync("The timer is up!", embed: builder.Build()).GetAwaiter().GetResult();
+                if (x.DeleteNoteAfter)
+                    Delete(x.MemberId, x.NoteId).GetAwaiter().GetResult();
             }
             RemoveReminder(x.MemberId, x.NoteId).GetAwaiter().GetResult();
         });
