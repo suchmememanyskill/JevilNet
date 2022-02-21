@@ -23,8 +23,10 @@ public class NoteSlashCommands : NoteInteractions
         {
             NoteService service = services.GetRequiredService<NoteService>();
             List<Note> notes = service.GetNotes(context.User.Id);
-
-            return AutocompletionResult.FromSuccess(notes.Select(x => new AutocompleteResult(x.Name, x.Id)).ToList());
+            string search = (string)autocompleteInteraction.Data.Current.Value;
+            search = search.ToLower();
+            
+            return AutocompletionResult.FromSuccess(notes.Where(x => x.Contents.ToLower().Contains(search) || x.Name.ToLower().Contains(search)).Select(x => new AutocompleteResult(x.Name, x.Id)).ToList());
         }
     }
 }
