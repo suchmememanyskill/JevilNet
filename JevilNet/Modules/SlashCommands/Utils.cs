@@ -56,7 +56,7 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
             
-            return AutocompletionResult.FromSuccess(emoteService.CachedEmotesList.Where(x => x.Name.ToLower() == search).Take(25).Select(x => new AutocompleteResult(x.Name, x.Name)));
+            return AutocompletionResult.FromSuccess(emoteService.CachedEmotesList.Where(x => x.Name.ToLower().Contains(search)).Take(25).Select(x => new AutocompleteResult(x.Name, x.Name)));
         }
     }
 }
