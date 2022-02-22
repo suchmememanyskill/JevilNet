@@ -37,7 +37,7 @@ public class EmoteService
         CachedEmotesList = CachedEmotesAsList();
     }
 
-    public GuildEmote? FindEmote(string name) => CachedEmotesList.Find(x => x.Name == name);
+    public GuildEmote? FindEmote(string name) => CachedEmotesList.Find(x => x.Name.ToLower() == name.ToLower());
 
     private List<GuildEmote> CachedEmotesAsList()
     {
