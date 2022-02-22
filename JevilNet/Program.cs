@@ -90,6 +90,7 @@ class Program
         => new ServiceCollection()
             .AddSingleton(configuration)
             .AddSingleton<DiscordSocketClient>()
+            .AddSingleton<EmoteService>()
             .AddSingleton<CommandService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<CommandHandler>()

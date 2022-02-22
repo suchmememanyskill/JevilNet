@@ -12,6 +12,20 @@ public class Utils : ModuleBase<SocketCommandContext>
     public DiscordSocketClient Client { get; set; }
     public CommandHandler Handler { get; set; }
     
+    public EmoteService Emote { get; set; }
+
+    [Command("emoji")]
+    [Alias("emote")]
+    [Summary("Sends an emote of your choosing")]
+    public async Task SendEmote(string emote)
+    {
+        GuildEmote? guildEmote = Emote.FindEmote(emote);
+        if (guildEmote != null)
+            await ReplyAsync(guildEmote.ToString());
+        else
+            await ReplyAsync("Didn't find the specified emote");
+    }
+
     [Command("ping")]
     [Alias("pong", "hello")]
     [Summary("Returns pong")]
