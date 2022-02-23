@@ -258,8 +258,30 @@ public class CommandHandler
         if (result.IsSuccess)
             return;
 
-        // the command failed, let's notify the user that something happened.
-        await context.Channel.SendMessageAsync($"error: {result}");
+        switch (result.Error)
+        {
+            case CommandError.ParseFailed:
+            case CommandError.BadArgCount:
+                var cmd = command.Value;
+                var parameters = cmd.Parameters.Select(p => string.IsNullOrEmpty(p.Summary) ? p.Name : p.Summary);
+                var paramsString = $"Parameters: {string.Join(", ", parameters)}" +
+                                   (string.IsNullOrEmpty(cmd.Summary) ? "" : $"\nSummary: {cmd.Summary}") +
+                                   (string.IsNullOrEmpty(cmd.Remarks) ? "" : $"\nRemarks: {cmd.Remarks}");
+                
+                var builder = new EmbedBuilder()
+                {
+                    Color = new Color(114, 137, 218),
+                    Title = $"Help for {string.Join(", ", cmd.Aliases)}",
+                    Description = paramsString
+                };
+                
+                await context.Channel.SendMessageAsync("Invalid command usage!", embed: builder.Build());
+                break;
+            default:
+                // the command failed, let's notify the user that something happened.
+                await context.Channel.SendMessageAsync($"error: {result}");
+                break;
+        }
     }
     #endregion
 }

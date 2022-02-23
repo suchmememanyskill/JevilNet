@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using System.ComponentModel;
+using Discord.Commands;
 using JevilNet.Services;
 using JevilNet.Services.Models;
 
@@ -12,10 +13,12 @@ public class RemindMeComamds : ModuleBase<SocketCommandContext>
     
     [Command]
     [Summary("Reminds you after a set amount of time")]
+    [Remarks("time is a timespan. Important! You cannot put in something like 90m. If you want to do so, split it in 1h30m")]
     public Task RemindMeDelete(TimeSpan time, [Remainder] string text) => RemindMe(false, time, text);
 
     [Command("keep")]
     [Summary("Reminds you after a set amount of time. Keeps the note after")]
+    [Remarks("time is a timespan. Important! You cannot put in something like 90m. If you want to do so, split it in 1h30m")]
     public Task RemindMeKeep(TimeSpan time, [Remainder] string text) => RemindMe(true, time, text);
     
     private async Task RemindMe(bool keep, TimeSpan time, string text)
