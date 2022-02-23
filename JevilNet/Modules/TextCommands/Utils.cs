@@ -35,6 +35,7 @@ public class Utils : ModuleBase<SocketCommandContext>
     [Command("stop")]
     [Alias("kill")]
     [Summary("Stops the bot")]
+    [RequireOwner]
     public async Task StopBot()
     {
         await ReplyAsync("Cya!");

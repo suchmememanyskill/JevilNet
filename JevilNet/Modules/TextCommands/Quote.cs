@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using JevilNet.Attributes;
+using JevilNet.Extentions;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Quote.Models;
 using ContextType = Discord.Commands.ContextType;
@@ -37,7 +38,7 @@ public class Quote : ModuleBase<SocketCommandContext>
     {
         if (quote.Length > 300)
         {
-            await ReplyAsync("Quotes a limited to a max of 300 characters");
+            await ReplyAsync("Quotes are limited to a max of 300 characters");
             return;
         }
         
@@ -72,7 +73,8 @@ public class Quote : ModuleBase<SocketCommandContext>
             .Take(20)
             .Select((x, i) => $"{i + 1 + page * 20}: {x}"));
 
-        await ReplyAsync(header, allowedMentions: AllowedMentions.None);
+        foreach (var part in header.SplitInParts(1900)) 
+            await ReplyAsync(part, allowedMentions: AllowedMentions.None);
     }
 
     [Command("list")]
