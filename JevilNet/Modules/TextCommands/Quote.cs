@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using JevilNet.Attributes;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Quote.Models;
 using ContextType = Discord.Commands.ContextType;
@@ -30,7 +31,7 @@ public class Quote : ModuleBase<SocketCommandContext>
 
     [Command("add")]
     [Summary("Adds a quote")]
-    [Discord.Interactions.RequireRole("Quoter")]
+    [RequireRole("Quoter")]
     public async Task AddQuote([Remainder] string quote)
     {
         if (quote.Length > 300)
