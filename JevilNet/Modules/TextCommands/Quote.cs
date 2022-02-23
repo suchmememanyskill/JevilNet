@@ -18,7 +18,7 @@ public class Quote : ModuleBase<SocketCommandContext>
 
     [Command]
     [Summary("Gets a random saved quote")]
-    public async Task RandomQuote()
+    public async Task RandomQuote(int idx = -1)
     {
         List<string> combined = QuoteService.GetServerQuotes(Context.Guild.Id).GetCombinedQuotes();
         if (combined.Count <= 0)
@@ -27,8 +27,20 @@ public class Quote : ModuleBase<SocketCommandContext>
             return;
         }
 
-        string random = combined[Program.Random.Next(combined.Count)];
-        await ReplyAsync(random, allowedMentions: AllowedMentions.None);
+        string quote;
+        
+        if (idx <= 0)
+            quote = combined[Program.Random.Next(combined.Count)];
+        else
+        {
+            idx--;
+            if (idx >= combined.Count)
+                quote = "Index out of range";
+            else
+                quote = combined[idx];
+        }
+
+        await ReplyAsync(quote, allowedMentions: AllowedMentions.None);
     }
 
     [Command("add")]
