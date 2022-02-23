@@ -113,7 +113,7 @@ public class QuoteService : BaseService<List<ServerQuotes>>
                 var minutesSinceLastMessage = (DateTime.UtcNow - message.Timestamp).TotalMinutes;
                 Console.WriteLine($"[Quote] {serverQuotes.ServerId}'s minutes since last message: {minutesSinceLastMessage}");
 
-                if (minutesSinceLastMessage > 3600) // One hour
+                if (minutesSinceLastMessage > 60) // One hour
                 {
                     List<string> combinedQuotes = serverQuotes.GetCombinedQuotes();
                     
