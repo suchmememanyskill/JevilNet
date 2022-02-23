@@ -31,7 +31,7 @@ public class Quote : ModuleBase<SocketCommandContext>
 
     [Command("add")]
     [Summary("Adds a quote")]
-    [RequireRole("Quoter")]
+    [RequireRole(946058033551802419)]
     public async Task AddQuote([Remainder] string quote)
     {
         if (quote.Length > 300)
