@@ -9,6 +9,7 @@ namespace JevilNet.Modules.TextCommands;
 
 [Group("quote")]
 [Alias("quotes", "forcequote")]
+[Summary("A module that posts a quote or an old message in the desired channel. People can only add quotes with the 'Quoter' role")]
 [RequireContext(ContextType.Guild)]
 public class Quote : ModuleBase<SocketCommandContext>
 {
@@ -31,7 +32,7 @@ public class Quote : ModuleBase<SocketCommandContext>
 
     [Command("add")]
     [Summary("Adds a quote")]
-    [RequireRole(946058033551802419)]
+    [RequireRole("Quoter")]
     public async Task AddQuote([Remainder] string quote)
     {
         if (quote.Length > 300)
