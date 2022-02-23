@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
 using JevilNet.Services;
+using JevilNet.Services.Quote;
 using JevilNet.Services.Vote;
 
 namespace JevilNet;
@@ -39,6 +40,7 @@ class Program
     }
 
     public static ServiceProvider? staticServices;
+    public static Random Random = new Random();
 
     static async Task RunAsync (IConfiguration configuration)
     {
@@ -96,6 +98,7 @@ class Program
             .AddSingleton<CommandHandler>()
             .AddSingleton(x => new NoteService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<VoteService>()
+            .AddSingleton<QuoteService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
