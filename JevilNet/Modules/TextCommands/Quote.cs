@@ -30,6 +30,7 @@ public class Quote : ModuleBase<SocketCommandContext>
 
     [Command("add")]
     [Summary("Adds a quote")]
+    [Discord.Interactions.RequireRole("Quoter")]
     public async Task AddQuote([Remainder] string quote)
     {
         if (quote.Length > 300)
