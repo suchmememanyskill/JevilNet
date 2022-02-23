@@ -32,6 +32,12 @@ public class Quote : ModuleBase<SocketCommandContext>
     [Summary("Adds a quote")]
     public async Task AddQuote([Remainder] string quote)
     {
+        if (quote.Length > 300)
+        {
+            await ReplyAsync("Quotes a limited to a max of 300 characters");
+            return;
+        }
+        
         await QuoteService.AddQuote(Context.Guild.Id, Context.User.Id, Context.User.Username, quote);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
