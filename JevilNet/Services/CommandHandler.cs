@@ -213,13 +213,18 @@ public class CommandHandler
             {
                 if (inTag)
                 {
-                    if (x.Contains('>'))
+                    if (x.Contains('>') && !x.Contains('<'))
                         inTag = false;
                 }
                 else
                 {
                     if (x.Contains('<'))
+                    {
+                        if (x.Contains('>'))
+                            continue;
+                        
                         inTag = true;
+                    }
                     else
                     {
                         GuildEmote? emote = _emote.FindEmote(x);
