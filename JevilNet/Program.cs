@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
+using JevilNet.Extentions;
 using JevilNet.Services;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Vote;
