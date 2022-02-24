@@ -18,7 +18,7 @@ public class VoteActiveAttribute : PreconditionAttribute
         if (context.Guild == null)
             return Task.FromResult(PreconditionResult.FromError("Not in a guild"));
         
-        if (service.GetModel(context.Guild.Id).Active)
+        if (service.GetOrDefaultServerStorage(context.Guild.Id).CustomStorage.Active)
             return Task.FromResult(PreconditionResult.FromSuccess());
         
         return Task.FromResult(PreconditionResult.FromError("No vote is currently active"));
@@ -34,7 +34,7 @@ public class VoteInactiveAttribute : PreconditionAttribute
         if (context.Guild == null)
             return Task.FromResult(PreconditionResult.FromError("Not in a guild"));
         
-        if (!service.GetModel(context.Guild.Id).Active)
+        if (!service.GetOrDefaultServerStorage(context.Guild.Id).CustomStorage.Active)
             return Task.FromResult(PreconditionResult.FromSuccess());
         
         return Task.FromResult(PreconditionResult.FromError("A vote is currently active"));

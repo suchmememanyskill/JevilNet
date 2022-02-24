@@ -1,23 +1,17 @@
 ﻿using Discord;
+using JevilNet.Services.UserSpecificGuildStorage;
 
 namespace JevilNet.Services.Vote;
 
-public class VoteService : BaseService<VoteModelHolder>
+public class VoteService : UserSpecificGuildStorage<VoteModel, int>
 {
     public record VoteTally(string option, int count);
 
     public VoteService() => Load();
     public override string StoragePath() => "./Storage/vote.json";
-
-    public VoteModel GetModel(ulong guildId) => storage.VoteHolder.ContainsKey(guildId) ? storage.VoteHolder[guildId] : new();
-
-    public bool IsCreator(ulong guildId, ulong userId) => GetModel(guildId).CreatorId == userId;
-    public async Task SetModel(ulong guildId, VoteModel model)
-    {
-        storage.VoteHolder[guildId] = model;
-        await Save();
-    }
     
+    public bool IsCreator(ulong guildId, ulong userId) => GetOrDefaultServerStorage(guildId).CustomStorage.CreatorId == userId;
+
     public async Task Start(ulong guildId, ulong creatorId, string name, List<string> options, int maxPerPerson, int minPerPerson)
     {
         if (maxPerPerson > options.Count)
@@ -38,49 +32,48 @@ public class VoteService : BaseService<VoteModelHolder>
         model.Options = options;
         model.MaxPerPerson = maxPerPerson;
         model.MinPerPerson = minPerPerson;
-        model.UserVotes.Clear();
         model.Active = true;
         model.CreatorId = creatorId;
-        await SetModel(guildId, model);
+
+        var serverStorage = GetOrDefaultServerStorage(guildId);
+        serverStorage.CustomStorage = model;
+        serverStorage.UserStorage.Clear();
+        
+        if (!storage.Contains(serverStorage))
+            storage.Add(serverStorage);
+
+        await Save();
     }
 
     public async Task AddVote(ulong guildId, ulong memberId, List<int> indexes)
-    {
-        GetModel(guildId).UserVotes[memberId] = indexes;
-        await Save();
-    }
+        => await SetOnUser(guildId, memberId, "", indexes);
 
     public async Task RemoveVote(ulong guildId, ulong memberId)
-    {
-        GetModel(guildId).UserVotes.Remove(memberId);
-        await Save();
-    }
+        => await DelUser(guildId, memberId);
 
-    public List<string> GetUserVotes(ulong guildId, ulong memberId) => (GetModel(guildId).UserVotes.ContainsKey(memberId))
-        ? GetModel(guildId).UserVotes[memberId].Select(x => GetModel(guildId).Options[x]).ToList()
-        : new();
+    public List<string> GetUserVotes(ulong guildId, ulong memberId)
+    {
+        var server = GetOrDefaultServerStorage(guildId);
+        return GetOrDefaultUserStorage(guildId, memberId).CustomStorage.Select(x => server.CustomStorage.Options[x]).ToList();
+    }
 
     public async Task EndVote(ulong guildId)
-    {
-        if (storage.VoteHolder.Remove(guildId))
-            await Save();
-    }
+        => await DelServer(guildId);
 
     public List<VoteTally> Tally(ulong guildId)
     {
-        VoteModel model = GetModel(guildId);
+        var server = GetOrDefaultServerStorage(guildId);
+        VoteModel model = server.CustomStorage;
         Dictionary<int, int> localTally = new();
-        foreach (var (key, value) in model.UserVotes)
+        
+        server.GetCombinedStorage().ForEach(x =>
         {
-            value.ForEach(x =>
-            {
-                if (!localTally.ContainsKey(x))
-                    localTally[x] = 0;
+            if (!localTally.ContainsKey(x))
+                localTally[x] = 0;
 
-                localTally[x]++;
-            });
-        }
-
+            localTally[x]++;
+        });
+        
         List<VoteTally> tally = new();
         foreach (var (key, value) in localTally)
         {
@@ -92,7 +85,8 @@ public class VoteService : BaseService<VoteModelHolder>
 
     public ComponentBuilder BuildMainView(ulong guildId)
     {
-        VoteModel model = GetModel(guildId);
+        var server = GetOrDefaultServerStorage(guildId);
+        VoteModel model = server.CustomStorage;
         
         var menuBuilder = new SelectMenuBuilder()
             .WithPlaceholder("Vote on an option!")
@@ -110,7 +104,7 @@ public class VoteService : BaseService<VoteModelHolder>
     }
 
     public EmbedBuilder BuildTallyEmbed(ulong guildId) => new EmbedBuilder()
-        .WithTitle(GetModel(guildId).Name)
+        .WithTitle(GetOrDefaultServerStorage(guildId).CustomStorage.Name)
         .WithDescription(string.Join("\n", Tally(guildId).Select(x => $"{x.count} votes on {x.option}")))
         .WithColor(Color.Magenta);
 }

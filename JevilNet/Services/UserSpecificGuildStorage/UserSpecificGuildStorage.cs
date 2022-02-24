@@ -30,6 +30,21 @@ public abstract class UserSpecificGuildStorage<TCustomServerStorage, TCustomUser
         await Save();
     }
 
+    public async Task SetOnUser(ulong serverId, ulong userId, string username, List<TCustomUserStorage> obj)
+    {
+        var serverStorage = GetOrDefaultServerStorage(serverId);
+        var userStorage = GetOrDefaultUserStorage(serverStorage, userId, username);
+        userStorage.CustomStorage = obj;
+        
+        if (!serverStorage.UserStorage.Contains(userStorage))
+            serverStorage.UserStorage.Add(userStorage);
+        
+        if (!storage.Contains(serverStorage))
+            storage.Add(serverStorage);
+
+        await Save();
+    }
+
     public async Task DelFromUser(ulong serverId, ulong userId, TCustomUserStorage obj)
     {
         var userStorage = GetOrDefaultUserStorage(serverId, userId);
@@ -62,5 +77,11 @@ public abstract class UserSpecificGuildStorage<TCustomServerStorage, TCustomUser
             storage.Add(serverStorage);
 
         await Save();
+    }
+
+    public async Task DelServer(ulong serverId)
+    {
+        if (storage.RemoveAll(x => x.ServerId == serverId) > 0)
+            await Save();
     }
 }

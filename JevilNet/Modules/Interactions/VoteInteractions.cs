@@ -16,7 +16,7 @@ public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
     private VoteModel GetModel()
     {
         if (model == null)
-            model = VoteService.GetModel(Context.Guild.Id);
+            model = VoteService.GetOrDefaultServerStorage(Context.Guild.Id).CustomStorage;
 
         return model;
     }
