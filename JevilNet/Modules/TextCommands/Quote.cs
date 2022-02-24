@@ -5,7 +5,6 @@ using JevilNet.Attributes;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
 using JevilNet.Services.Quote;
-using JevilNet.Services.Quote.Models;
 using ContextType = Discord.Commands.ContextType;
 
 namespace JevilNet.Modules.TextCommands;

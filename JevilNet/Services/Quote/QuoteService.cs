@@ -1,13 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using JevilNet.Services.Quote.Models;
+using JevilNet.Services.UserSpecificGuildStorage;
 
 namespace JevilNet.Services.Quote;
 
-public class QuoteService : BaseService<List<ServerQuotes>>
+public class QuoteService : UserSpecificGuildStorage<ulong, string>
 {
     public override string StoragePath() => "./Storage/quote.json";
-    public List<ServerQuotes> Quotes => storage;
     private DiscordSocketClient client;
     private Timer timer;
 
@@ -18,61 +17,25 @@ public class QuoteService : BaseService<List<ServerQuotes>>
         timer = new(MessageChecker, null, 10 * 60 * 1000, 10 * 60 * 1000);
     }
 
-    public ServerQuotes GetServerQuotes(ulong serverId) => 
-        storage.Find(x => x.ServerId == serverId) ?? new(serverId);
-    
-    public UserQuotes GetUserQuotes(ServerQuotes serverQuotes, ulong userId, string username = "") =>
-        serverQuotes.UserQuotes.Find(x => x.UserId == userId) ?? new(userId, username);
-
     public async Task AddQuote(ulong serverId, ulong userId, string username, string quote)
-    {
-        ServerQuotes serverQuotes = GetServerQuotes(serverId);
-        UserQuotes userQuotes = GetUserQuotes(serverQuotes, userId, username);
-        userQuotes.Quotes.Add(quote);
-        
-        if (!serverQuotes.UserQuotes.Contains(userQuotes))
-            serverQuotes.UserQuotes.Add(userQuotes);
-        
-        if (!storage.Contains(serverQuotes))
-            storage.Add(serverQuotes);
-
-        await Save();
-    }
+        => await AddToUser(serverId, userId, username, quote);
 
     public async Task DelQuote(ulong serverId, ulong userId, int idx)
-    {
-        ServerQuotes serverQuotes = GetServerQuotes(serverId);
-        UserQuotes userQuotes = GetUserQuotes(serverQuotes, userId);
-        
-        if (idx < 0 || idx >= userQuotes.Quotes.Count)
-            throw new Exception("Index out of range");
-        
-        userQuotes.Quotes.RemoveAt(idx);
-        await Save();
-    }
-
+        => await DelFromUser(serverId, userId, idx);
+    
     public async Task EditQuote(ulong serverId, ulong userId, int idx, string newQuote)
     {
-        ServerQuotes serverQuotes = GetServerQuotes(serverId);
-        UserQuotes userQuotes = GetUserQuotes(serverQuotes, userId);
+        var userQuotes = GetOrDefaultUserStorage(serverId, userId);
 
-        if (idx < 0 || idx >= userQuotes.Quotes.Count)
+        if (idx < 0 || idx >= userQuotes.CustomStorage.Count)
             throw new Exception("Index out of range");
 
-        userQuotes.Quotes[idx] = newQuote;
+        userQuotes.CustomStorage[idx] = newQuote;
         await Save();
     }
 
     public async Task SetQuoteChannel(ulong serverId, ulong channelId)
-    {
-        ServerQuotes serverQuotes = GetServerQuotes(serverId);
-        serverQuotes.QuoteChannel = channelId;
-        
-        if (!storage.Contains(serverQuotes))
-            storage.Add(serverQuotes);
-
-        await Save();
-    }
+        => await SetCustomStorage(serverId, channelId);
 
     public async Task<string?> GetOldMessage(ITextChannel channel)
     {
@@ -94,10 +57,10 @@ public class QuoteService : BaseService<List<ServerQuotes>>
         Console.WriteLine("[Quote] Starting message scanning...");
         foreach (var serverQuotes in storage)
         {
-            if (serverQuotes.QuoteChannel <= 0)
+            if (serverQuotes.CustomStorage <= 0)
                 continue;
 
-            IChannel channel = await client.GetChannelAsync(serverQuotes.QuoteChannel);
+            IChannel channel = await client.GetChannelAsync(serverQuotes.CustomStorage);
             if (channel is ITextChannel textChannel)
             {
                 var messages = await textChannel.GetMessagesAsync(1).FlattenAsync();
@@ -115,7 +78,7 @@ public class QuoteService : BaseService<List<ServerQuotes>>
 
                 if (minutesSinceLastMessage > 60) // One hour
                 {
-                    List<string> combinedQuotes = serverQuotes.GetCombinedQuotes();
+                    List<string> combinedQuotes = serverQuotes.GetCombinedStorage();
                     
                     if (combinedQuotes.Count > 0 && Program.Random.Next(2) == 1)
                     {

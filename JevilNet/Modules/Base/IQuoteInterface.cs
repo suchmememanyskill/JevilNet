@@ -1,7 +1,6 @@
 ﻿using Discord;
 using JevilNet.Extentions;
 using JevilNet.Services.Quote;
-using JevilNet.Services.Quote.Models;
 
 namespace JevilNet.Modules.Base;
 
@@ -13,7 +12,7 @@ public interface IQuoteInterface : IBaseInterface
     
     public async Task RandomQuoteInterface(int idx)
     {
-        List<string> combined = QuoteService.GetServerQuotes(Guild().Id).GetCombinedQuotes();
+        List<string> combined = QuoteService.GetOrDefaultServerStorage(Guild().Id).GetCombinedStorage();
         if (combined.Count <= 0)
         {
             await RespondEphermeral("No quotes have been added to this server");
@@ -58,20 +57,19 @@ public interface IQuoteInterface : IBaseInterface
             await RespondEphermeral("Invalid page");
             return;
         }
-
-        ServerQuotes q = QuoteService.GetServerQuotes(Guild().Id);
-        UserQuotes userQuotes = QuoteService.GetUserQuotes(q, user.Id);
+        
+        var userQuotes = QuoteService.GetOrDefaultUserStorage(Guild().Id, user.Id);
         page--;
 
-        if (userQuotes.Quotes.Count <= 0)
+        if (userQuotes.CustomStorage.Count <= 0)
         {
             await RespondEphermeral("You do not have any quotes");
             return;
         }
 
-        string header = $"{user.Username}'s quotes: ({page + 1}/{(userQuotes.Quotes.Count + 19) / 20})\n\n";
+        string header = $"{user.Username}'s quotes: ({page + 1}/{(userQuotes.CustomStorage.Count + 19) / 20})\n\n";
         header += String.Join("\n", userQuotes
-            .Quotes
+            .CustomStorage
             .Skip(page * 20)
             .Take(20)
             .Select((x, i) => $"{i + 1 + page * 20}: {x}"));

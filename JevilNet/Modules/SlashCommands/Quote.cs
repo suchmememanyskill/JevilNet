@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
 using JevilNet.Services.Quote;
-using JevilNet.Services.Quote.Models;
 
 namespace JevilNet.Modules.SlashCommands;
 
