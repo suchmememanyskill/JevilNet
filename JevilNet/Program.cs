@@ -70,6 +70,15 @@ class Program
                 await commands.RegisterCommandsGloballyAsync(true);
                 Console.WriteLine("Setting commands on all servers...");
             }
+
+            string startMessage =
+                $"----------\nLogged in as:\n{client.CurrentUser.Username}\n{client.CurrentUser.Id}\n----------\n";
+
+            startMessage += $"Currently joined servers:\n{string.Join('\n', client.Guilds.Select(x => x.Name))}";
+
+            IChannel c = await client.GetChannelAsync(configuration.GetValue<ulong>("logChannel"));
+            if (c is ITextChannel d)
+                await d.SendBlockAsync(startMessage);
         };
 
         // Here we can initialize the service that will register and execute our commands

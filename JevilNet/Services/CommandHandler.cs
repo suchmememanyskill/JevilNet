@@ -128,6 +128,8 @@ public class CommandHandler
     private async Task SlashInteractionCommandExecuted(SlashCommandInfo arg1, Discord.IInteractionContext arg2,
         Discord.Interactions.IResult arg3)
     {
+        Console.WriteLine($"{DateTime.Now}: {arg2.User.Username} executed slash command {arg1.Name}");
+        
         if (!arg3.IsSuccess)
         {
             switch (arg3.Error)
@@ -255,6 +257,8 @@ public class CommandHandler
         // command is unspecified when there was a search failure (command not found); we don't care about these errors
         if (!command.IsSpecified)
             return;
+        
+        Console.WriteLine($"{DateTime.Now}: {context.User.Username} executed text command {command.Value.Aliases.First()}");
 
         // the command was successful, we don't care about this result, unless we want to log that a command succeeded.
         if (result.IsSuccess)
