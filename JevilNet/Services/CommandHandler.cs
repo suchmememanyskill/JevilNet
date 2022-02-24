@@ -125,7 +125,7 @@ public class CommandHandler
         return Task.CompletedTask;
     }
 
-    private Task SlashInteractionCommandExecuted(SlashCommandInfo arg1, Discord.IInteractionContext arg2,
+    private async Task SlashInteractionCommandExecuted(SlashCommandInfo arg1, Discord.IInteractionContext arg2,
         Discord.Interactions.IResult arg3)
     {
         if (!arg3.IsSuccess)
@@ -133,6 +133,10 @@ public class CommandHandler
             switch (arg3.Error)
             {
                 case InteractionCommandError.UnmetPrecondition:
+                    if (arg2 is SocketInteractionContext ctx)
+                    {
+                        await ctx.Interaction.RespondAsync("You are missing permissions to do this");
+                    }
                     // implement
                     break;
                 case InteractionCommandError.UnknownCommand:
@@ -151,8 +155,6 @@ public class CommandHandler
                     break;
             }
         }
-
-        return Task.CompletedTask;
     }
 
     # endregion
