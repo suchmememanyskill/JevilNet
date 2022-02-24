@@ -83,4 +83,56 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>
         
         await RespondAsync(header.SplitInParts(1900).First(), ephemeral:true);
     }
+    
+    [SlashCommand("del", "Deletes a specific quote from either you or someone else. Editing others requires admin")]
+    public async Task DelUser(int idx, IUser user = null)
+    {
+        if (user == null)
+            user = Context.User;
+        else
+        {
+            var guildUser = Context.User as IGuildUser;
+            if (!guildUser.GuildPermissions.Has(GuildPermission.Administrator))
+            {
+                await RespondAsync("You cannot do this", ephemeral: true);
+                return;
+            }
+        }
+        
+        try
+        {
+            await QuoteService.DelQuote(Context.Guild.Id, user.Id, idx - 1);
+            await RespondAsync("Quote deleted", ephemeral: true);
+        }
+        catch (Exception e)
+        {
+            await RespondAsync(e.Message, ephemeral: true);
+        }
+    }
+    
+    [SlashCommand("edit", "Edits a specific quote from either you or someone else. Editing other requires admin")]
+    public async Task EditUser(int idx, string newQuote, IUser user = null)
+    {
+        if (user == null)
+            user = Context.User;
+        else
+        {
+            var guildUser = Context.User as IGuildUser;
+            if (!guildUser.GuildPermissions.Has(GuildPermission.Administrator))
+            {
+                await RespondAsync("You cannot do this", ephemeral: true);
+                return;
+            }
+        }
+        
+        try
+        {
+            await QuoteService.EditQuote(Context.Guild.Id, user.Id, idx - 1, newQuote);
+            await RespondAsync("Quote edited", ephemeral: true);
+        }
+        catch (Exception e)
+        {
+            await RespondAsync(e.Message, ephemeral: true);
+        }
+    }
 }
