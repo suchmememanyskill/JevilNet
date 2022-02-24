@@ -59,7 +59,7 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
 
     public async Task Respond(string text = null, Embed embed = null, bool ephemeral = false)
         => await RespondAsync(text, embed: embed, ephemeral: ephemeral);
-    public async Task React(IEmote emote) => await Respond(emote.ToString());
+    public async Task React(IEmote emote) => await me.RespondEphermeral(emote.ToString());
     public SocketGuild Guild() => Context.Guild;
     public SocketUser User() => Context.User;
     public Task RespondMultiple(IEnumerable<string> messages) => me.RespondEphermeral(messages.First());
