@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using JevilNet.Attributes;
 using JevilNet.Extentions;
+using JevilNet.Modules.Base;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Quote.Models;
 using ContextType = Discord.Commands.ContextType;
@@ -12,82 +14,23 @@ namespace JevilNet.Modules.TextCommands;
 [Alias("quotes", "forcequote")]
 [Summary("A module that posts a quote or an old message in the desired channel. People can only add quotes with the 'Quoter' role")]
 [RequireContext(ContextType.Guild)]
-public class Quote : ModuleBase<SocketCommandContext>
+public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
 {
     public QuoteService QuoteService { get; set; }
+    private IQuoteInterface me => this;
 
     [Command]
     [Summary("Gets a random saved quote")]
-    public async Task RandomQuote(int idx = -1)
-    {
-        List<string> combined = QuoteService.GetServerQuotes(Context.Guild.Id).GetCombinedQuotes();
-        if (combined.Count <= 0)
-        {
-            await ReplyAsync("No quotes have been added to this server");
-            return;
-        }
-
-        string quote;
-        
-        if (idx <= 0)
-            quote = combined[Program.Random.Next(combined.Count)];
-        else
-        {
-            idx--;
-            if (idx >= combined.Count)
-                quote = "Index out of range";
-            else
-                quote = combined[idx];
-        }
-
-        await ReplyAsync(quote, allowedMentions: AllowedMentions.None);
-    }
+    public async Task RandomQuote(int idx = -1) => await me.RandomQuoteInterface(idx);
 
     [Command("add")]
     [Summary("Adds a quote")]
     [RequireRole("Quoter")]
-    public async Task AddQuote([Remainder] string quote)
-    {
-        if (quote.Length > 300)
-        {
-            await ReplyAsync("Quotes are limited to a max of 300 characters");
-            return;
-        }
-        
-        await QuoteService.AddQuote(Context.Guild.Id, Context.User.Id, Context.User.Username, quote);
-        await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
-    }
+    public async Task AddQuote([Remainder] string quote) => await me.AddQuoteInterface(quote);
 
     [Command("listuser")]
     [Summary("Lists quotes from a specific user")]
-    public async Task ListUser(IUser user, int page = 1)
-    {
-        if (page < 1)
-        {
-            await ReplyAsync("Invalid page");
-            return;
-        }
-
-        ServerQuotes q = QuoteService.GetServerQuotes(Context.Guild.Id);
-        UserQuotes userQuotes = QuoteService.GetUserQuotes(q, user.Id);
-        page--;
-
-        if (userQuotes.Quotes.Count <= 0)
-        {
-            await ReplyAsync("You do not have any quotes");
-            return;
-        }
-
-        string header = $"{user.Username}'s quotes: ({page + 1}/{(userQuotes.Quotes.Count + 19) / 20})\n\n";
-        header += String.Join("\n", userQuotes
-            .Quotes
-            .Skip(page * 20)
-            .Take(20)
-            .Select((x, i) => $"{i + 1 + page * 20}: {x}"));
-
-        foreach (var part in header.SplitInParts(1900)) 
-            await ReplyAsync(part, allowedMentions: AllowedMentions.None);
-    }
+    public async Task ListUser(IUser user, int page = 1) => await me.ListUserInterface(user, page);
 
     [Command("list")]
     [Summary("Lists quotes that you have added")]
@@ -97,18 +40,7 @@ public class Quote : ModuleBase<SocketCommandContext>
     [Alias("deleteuser")]
     [Summary("Deletes a specific quote from a specific user")]
     [RequireUserPermission(GuildPermission.Administrator)]
-    public async Task DelUser(IUser user, int idx)
-    {
-        try
-        {
-            await QuoteService.DelQuote(Context.Guild.Id, user.Id, idx - 1);
-            await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
-        }
-        catch (Exception e)
-        {
-            await ReplyAsync(e.Message);
-        }
-    }
+    public async Task DelUser(IUser user, int idx) => await me.DelUserInterface(idx, user);
 
     [Command("del")]
     [Alias("delete")]
@@ -118,18 +50,8 @@ public class Quote : ModuleBase<SocketCommandContext>
     [Command("edituser")]
     [Summary("Edits another user's quote")]
     [RequireUserPermission(GuildPermission.Administrator)]
-    public async Task EditUser(IUser user, int idx, [Remainder] string newQuote)
-    {
-        try
-        {
-            await QuoteService.EditQuote(Context.Guild.Id, user.Id, idx - 1, newQuote);
-            await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
-        }
-        catch (Exception e)
-        {
-            await ReplyAsync(e.Message);
-        }
-    }
+    public async Task EditUser(IUser user, int idx, [Remainder] string newQuote) =>
+        await me.EditUserInterface(idx, newQuote, user);
 
     [Command("edit")]
     [Summary("Edit one of your quotes")]
@@ -151,5 +73,20 @@ public class Quote : ModuleBase<SocketCommandContext>
     {
         await QuoteService.SetQuoteChannel(Context.Guild.Id, 0);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
+    }
+
+
+    public Task Respond(string text = null, Embed embed = null, bool ephemeral = false)
+        => ReplyAsync(text, embed: embed, allowedMentions: AllowedMentions.None);
+    public Task React(IEmote emote) => Context.Message.AddReactionAsync(emote);
+
+    public SocketGuild Guild() => Context.Guild;
+
+    public SocketUser User() => Context.User;
+
+    public async Task RespondMultiple(IEnumerable<string> messages)
+    {
+        foreach (var message in messages)
+            await Respond(message);
     }
 }

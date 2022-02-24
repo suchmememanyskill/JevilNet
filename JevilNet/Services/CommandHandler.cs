@@ -135,7 +135,7 @@ public class CommandHandler
                 case InteractionCommandError.UnmetPrecondition:
                     if (arg2 is SocketInteractionContext ctx)
                     {
-                        await ctx.Interaction.RespondAsync("You are missing permissions to do this");
+                        await ctx.Interaction.RespondAsync("You are missing permissions to do this", ephemeral:true);
                     }
                     // implement
                     break;
