@@ -54,7 +54,7 @@ public class QuoteService : UserSpecificGuildStorage<ulong, string>
 
     private async Task MessageCheckerAsync()
     {
-        Console.WriteLine("[Quote] Starting message scanning...");
+        //Console.WriteLine("[Quote] Starting message scanning...");
         foreach (var serverQuotes in storage)
         {
             if (serverQuotes.CustomStorage <= 0)

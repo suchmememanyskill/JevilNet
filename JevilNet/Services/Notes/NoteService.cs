@@ -76,7 +76,7 @@ public class NoteService : BaseService<NoteStorage>
 
     private async Task SearchForExpiredRemindersAsync()
     {
-        Console.WriteLine($"{DateTime.Now}: Scanning for expired note reminders");
+        //Console.WriteLine($"{DateTime.Now}: Scanning for expired note reminders");
         foreach (var x in storage.NoteReminders.Where(x => x.AlertWhen < DateTimeOffset.Now).ToList())
         {
             Note? note = GetNote(x.MemberId, x.NoteId);
