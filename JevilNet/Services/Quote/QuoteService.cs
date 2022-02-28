@@ -64,7 +64,7 @@ public class QuoteService : UserSpecificGuildStorage<ulong, string>
             if (channel is ITextChannel textChannel)
             {
                 var messages = await textChannel.GetMessagesAsync(1).FlattenAsync();
-                
+
                 if (messages.Count() < 1)
                     continue;
 

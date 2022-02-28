@@ -14,17 +14,15 @@ public class CommandHandler
     private readonly CommandService _textCommands;
     private readonly IServiceProvider _services;
     private readonly IConfiguration _config;
-    private readonly EmoteService _emote;
 
     public CommandHandler(DiscordSocketClient client, CommandService textCommands,
-        InteractionService interactionCommands, IServiceProvider services, IConfiguration config, EmoteService emoteService)
+        InteractionService interactionCommands, IServiceProvider services, IConfiguration config)
     {
         _client = client;
         _interactionCommands = interactionCommands;
         _services = services;
         _textCommands = textCommands;
         _config = config;
-        _emote = emoteService;
     }
 
     public async Task InitializeAsync()
@@ -204,38 +202,7 @@ public class CommandHandler
             
             Console.WriteLine(text);
         }
-
-        if (message.Content.Contains(':'))
-        {
-            List<string> split = message.Content.Split(':').ToList();
-            bool inTag = false;
-            foreach (var x in split)
-            {
-                if (inTag)
-                {
-                    if (x.Contains('>') && !x.Contains('<'))
-                        inTag = false;
-                }
-                else
-                {
-                    if (x.Contains('<'))
-                    {
-                        if (x.Contains('>'))
-                            continue;
-                        
-                        inTag = true;
-                    }
-                    else
-                    {
-                        GuildEmote? emote = _emote.FindEmote(x);
-                        if (emote != null)
-                            await message.AddReactionAsync(emote);
-                    }
-                }
-            }
-        }
-
-
+        
         // This value holds the offset where the prefix ends
         var argPos = 0;
         // Perform prefix check. You may want to replace this with

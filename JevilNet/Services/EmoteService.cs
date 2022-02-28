@@ -20,6 +20,7 @@ public class EmoteService
                 await GetGuildEmotes(clientGuild);
             }
         };
+        client.MessageReceived += MessageReceived;
     }
 
     public async Task GuildUpdated(SocketGuild before, SocketGuild after)
@@ -39,6 +40,45 @@ public class EmoteService
 
     public GuildEmote? FindEmote(string name) => CachedEmotesList.Find(x => x.Name.ToLower() == name.ToLower());
 
+    public async Task MessageReceived(SocketMessage rawMessage)
+    {
+        // Ignore system messages, or messages from other bots
+        if (!(rawMessage is SocketUserMessage message))
+            return;
+        if (message.Source != MessageSource.User)
+            return;
+        
+        if (message.Content.Contains(':'))
+        {
+            List<string> split = message.Content.Split(':').ToList();
+            bool inTag = false;
+            foreach (var x in split)
+            {
+                if (inTag)
+                {
+                    if (x.Contains('>') && !x.Contains('<'))
+                        inTag = false;
+                }
+                else
+                {
+                    if (x.Contains('<'))
+                    {
+                        if (x.Contains('>'))
+                            continue;
+                        
+                        inTag = true;
+                    }
+                    else
+                    {
+                        GuildEmote? emote = FindEmote(x);
+                        if (emote != null)
+                            await message.AddReactionAsync(emote);
+                    }
+                }
+            }
+        }
+    }
+    
     private List<GuildEmote> CachedEmotesAsList()
     {
         List<GuildEmote> emotes = new();
