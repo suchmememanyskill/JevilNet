@@ -26,7 +26,7 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
     public async Task ListUser(IUser user = null, int page = 1) => await me.ListUserInterface(user, page);
 
     [SlashCommand("del", "Deletes a specific quote from either you or someone else. Editing others requires admin")]
-    public async Task DelUser(int idx, IUser user = null)
+    public async Task DelUser([Autocomplete(typeof(QuoteSearchAutocompleteHandler))] int idx, IUser user = null)
     {
         if (user != null)
         {
@@ -62,12 +62,22 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
             IParameterInfo parameter, IServiceProvider services)
         {
+            if (context.Guild == null)
+                return AutocompletionResult.FromError(new Exception("Guild is null"));
+            
             var quote = services.GetRequiredService<QuoteService>();
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
 
-            //return AutocompletionResult.FromSuccess(quote.GetOrDefaultUserStorage(context.Guild.Id, context.User.Id))
-            return AutocompletionResult.FromError(new Exception("fuk"));
+            string user = (string)autocompleteInteraction.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? context.User.Id.ToString();
+            ulong userId = UInt64.Parse(user);
+
+            return AutocompletionResult.FromSuccess(
+                quote.GetOrDefaultUserStorage(context.Guild.Id, userId)
+                    .CustomStorage
+                    .Where(x => x.ToLower().Contains(search))
+                    .Take(25)
+                    .Select((x, i) => new AutocompleteResult(x.Truncate(100), i)));
         }
     }
 
