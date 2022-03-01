@@ -72,12 +72,12 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
             string user = (string)autocompleteInteraction.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? context.User.Id.ToString();
             ulong userId = UInt64.Parse(user);
 
+
+            var storage = quote.GetOrDefaultUserStorage(context.Guild.Id, userId).CustomStorage;
             return AutocompletionResult.FromSuccess(
-                quote.GetOrDefaultUserStorage(context.Guild.Id, userId)
-                    .CustomStorage
-                    .Where(x => x.ToLower().Contains(search))
+                    storage.Where(x => x.ToLower().Contains(search))
                     .Take(25)
-                    .Select((x, i) => new AutocompleteResult(x.Truncate(100), i)));
+                    .Select(x => new AutocompleteResult(x.Truncate(100), storage.FindIndex(y => y == x) + 1)));
         }
     }
 
