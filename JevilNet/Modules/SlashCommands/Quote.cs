@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
 using JevilNet.Services.Quote;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JevilNet.Modules.SlashCommands;
 
@@ -41,7 +42,7 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
     }
     
     [SlashCommand("edit", "Edits a specific quote from either you or someone else. Editing other requires admin")]
-    public async Task EditUser(int idx, string newQuote, IUser user = null)
+    public async Task EditUser([Autocomplete(typeof(QuoteSearchAutocompleteHandler))] int idx, string newQuote, IUser user = null)
     {
         if (user != null)
         {
@@ -54,6 +55,20 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
         }
 
         await me.EditUserInterface(idx, newQuote, user);
+    }
+
+    public class QuoteSearchAutocompleteHandler : AutocompleteHandler
+    {
+        public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
+            IParameterInfo parameter, IServiceProvider services)
+        {
+            var quote = services.GetRequiredService<QuoteService>();
+            string search = (string)autocompleteInteraction.Data.Current.Value;
+            search = search.ToLower();
+
+            //return AutocompletionResult.FromSuccess(quote.GetOrDefaultUserStorage(context.Guild.Id, context.User.Id))
+            return AutocompletionResult.FromError(new Exception("fuk"));
+        }
     }
 
     public async Task Respond(string text = null, Embed embed = null, bool ephemeral = false)
