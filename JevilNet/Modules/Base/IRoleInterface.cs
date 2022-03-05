@@ -77,6 +77,9 @@ public interface IRoleInterface : IBaseInterface
         
         if (set == null)
             Exception("Did not find set");
+        
+        if (set.Roles.Count <= 0)
+            Exception("Set is empty!");
 
         var menu = new SelectMenuBuilder()
             .WithPlaceholder("Select roles you want")
