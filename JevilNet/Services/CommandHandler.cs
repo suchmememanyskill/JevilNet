@@ -4,6 +4,7 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using ExecuteResult = Discord.Commands.ExecuteResult;
 
 namespace JevilNet.Services;
 
@@ -146,8 +147,15 @@ public class CommandHandler
                     // implement
                     break;
                 case InteractionCommandError.Exception:
-                    // implement
-                    break;
+                    if (arg3 is Discord.Interactions.ExecuteResult execResult)
+                    {
+                        if (arg2 is SocketInteractionContext ctx2)
+                        {
+                            await ctx2.Interaction.RespondAsync(execResult.Exception.Message, ephemeral:true);
+                            return;
+                        }
+                    }
+                    goto default;
                 case InteractionCommandError.Unsuccessful:
                     // implement
                     break;
@@ -255,6 +263,14 @@ public class CommandHandler
                 
                 await context.Channel.SendMessageAsync("Invalid command usage!", embed: builder.Build());
                 break;
+            case CommandError.Exception:
+                if (result is ExecuteResult execResult)
+                {
+                    await context.Channel.SendMessageAsync(execResult.Exception.Message,
+                        allowedMentions: AllowedMentions.None);
+                    return;
+                }
+                goto default;
             default:
                 // the command failed, let's notify the user that something happened.
                 await context.Channel.SendMessageAsync($"error: {result}");

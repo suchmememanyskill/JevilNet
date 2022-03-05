@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 
 namespace JevilNet.Modules.SlashCommands;
 
+[RequireContext(ContextType.Guild)]
 public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
 {
     public record DiscordActivity(string displayName, string appId, PremiumTier tier = PremiumTier.None);

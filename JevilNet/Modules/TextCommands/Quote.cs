@@ -5,6 +5,7 @@ using JevilNet.Attributes;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
 using JevilNet.Services.Quote;
+using JevilNet.Services.Roles;
 using ContextType = Discord.Commands.ContextType;
 
 namespace JevilNet.Modules.TextCommands;
@@ -27,7 +28,7 @@ public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
     [RequireRole("Quoter")]
     public async Task AddQuote([Remainder] string quote) => await me.AddQuoteInterface(quote);
 
-    [Command("listuser")]
+    [Command("list")]
     [Summary("Lists quotes from a specific user")]
     public async Task ListUser(IUser user, int page = 1) => await me.ListUserInterface(user, page);
 
@@ -35,8 +36,8 @@ public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
     [Summary("Lists quotes that you have added")]
     public Task ListSelf(int page = 1) => ListUser(Context.User, page);
 
-    [Command("deluser")]
-    [Alias("deleteuser")]
+    [Command("del")]
+    [Alias("delete")]
     [Summary("Deletes a specific quote from a specific user")]
     [RequireUserPermission(GuildPermission.Administrator)]
     public async Task DelUser(IUser user, int idx) => await me.DelUserInterface(idx, user);
@@ -46,7 +47,7 @@ public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
     [Summary("Deletes a specific quote from yourself")]
     public Task DelSelf(int idx) => DelUser(Context.User, idx);
 
-    [Command("edituser")]
+    [Command("edit")]
     [Summary("Edits another user's quote")]
     [RequireUserPermission(GuildPermission.Administrator)]
     public async Task EditUser(IUser user, int idx, [Remainder] string newQuote) =>
@@ -75,8 +76,8 @@ public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
     }
 
 
-    public Task Respond(string text = null, Embed embed = null, bool ephemeral = false)
-        => ReplyAsync(text, embed: embed, allowedMentions: AllowedMentions.None);
+    public Task Respond(string text = null, Embed embed = null, bool ephemeral = false, MessageComponent components = null)
+        => ReplyAsync(text, embed: embed, allowedMentions: AllowedMentions.None, components: components);
     public Task React(IEmote emote) => Context.Message.AddReactionAsync(emote);
 
     public SocketGuild Guild() => Context.Guild;

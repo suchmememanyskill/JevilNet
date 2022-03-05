@@ -10,6 +10,7 @@ using Discord.Commands;
 using JevilNet.Extentions;
 using JevilNet.Services;
 using JevilNet.Services.Quote;
+using JevilNet.Services.Roles;
 using JevilNet.Services.Vote;
 
 namespace JevilNet;
@@ -109,6 +110,7 @@ class Program
             .AddSingleton(x => new NoteService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<VoteService>()
             .AddSingleton<QuoteService>()
+            .AddSingleton<RoleService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )

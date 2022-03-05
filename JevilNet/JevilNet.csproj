@@ -16,4 +16,8 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Services\CustomCommand" />
+    </ItemGroup>
+
 </Project>
