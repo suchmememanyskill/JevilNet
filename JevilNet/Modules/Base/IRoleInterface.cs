@@ -129,7 +129,18 @@ public interface IRoleInterface : IBaseInterface
         
         if (role == null)
             Exception("Could not find role");
-        
+
+        user ??= User();
+
+        if (user is SocketGuildUser guildUser)
+        {
+            int maxRolePos = guildUser.Roles.Max(x => x.Position);
+            if (role!.Position >= maxRolePos)
+                Exception("Cannot add role that is equal or higher than your current role");
+        }
+        else
+            Exception("Not in a guild?");
+
         await RoleService.AddToSet(set!, role!, description);
         await React(Emoji.Parse(":+1:"));
     }
