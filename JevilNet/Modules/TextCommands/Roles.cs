@@ -10,7 +10,7 @@ namespace JevilNet.Modules.TextCommands;
 [Alias("roles")]
 [Summary("A module that allows users to apply their own roles")]
 [RequireContext(ContextType.Guild)]
-public class Roles : ModuleBase<SocketCommandContext>, IRoleInterface
+public class Roles : TextCommandBase, IRoleInterface
 {
     public RoleService RoleService { get; set; }
     public IRoleInterface me => this;
@@ -107,12 +107,4 @@ public class Roles : ModuleBase<SocketCommandContext>, IRoleInterface
     public Task RemoveRoleCommand(string setName, IUser user, ulong roleId)
         => me.RemoveRoleFromSet(setName, roleId, user);
     
-
-    public Task Respond(string text = null, Embed embed = null, bool ephemeral = false, MessageComponent components = null)
-        => ReplyAsync(text, embed: embed, allowedMentions: AllowedMentions.None, components: components);
-    public Task React(IEmote emote) => Context.Message.AddReactionAsync(emote);
-
-    public SocketGuild Guild() => Context.Guild;
-
-    public SocketUser User() => Context.User;
 }

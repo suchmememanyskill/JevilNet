@@ -11,4 +11,11 @@ public interface IBaseInterface
     SocketGuild Guild();
     SocketUser User();
     void Exception(string message) => throw new Exception(message);
+    
+    void ThrowOnMissingPerms(GuildPermission permission = GuildPermission.Administrator)
+    {
+        var guildUser = User() as IGuildUser;
+        if (!guildUser!.GuildPermissions.Has(permission))
+            Exception("You are not allowed to do this");
+    }
 }

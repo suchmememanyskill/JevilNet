@@ -10,7 +10,7 @@ namespace JevilNet.Modules.SlashCommands;
 
 [Group("quote", "Access the quote module")]
 [RequireContext(ContextType.Guild)]
-public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInterface
+public class Quote : SlashCommandBase, IQuoteInterface
 {
     public QuoteService QuoteService { get; set; }
     private IQuoteInterface me => this;
@@ -29,14 +29,7 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
     public async Task DelUser([Autocomplete(typeof(QuoteSearchAutocompleteHandler))] int idx, IUser user = null)
     {
         if (user != null)
-        {
-            var guildUser = Context.User as IGuildUser;
-            if (!guildUser.GuildPermissions.Has(GuildPermission.Administrator))
-            {
-                await RespondAsync("You cannot do this", ephemeral: true);
-                return;
-            }
-        }
+            me.ThrowOnMissingPerms();
 
         await me.DelUserInterface(idx, user);
     }
@@ -45,14 +38,7 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
     public async Task EditUser([Autocomplete(typeof(QuoteSearchAutocompleteHandler))] int idx, string newQuote, IUser user = null)
     {
         if (user != null)
-        {
-            var guildUser = Context.User as IGuildUser;
-            if (!guildUser.GuildPermissions.Has(GuildPermission.Administrator))
-            {
-                await RespondAsync("You cannot do this", ephemeral: true);
-                return;
-            }
-        }
+            me.ThrowOnMissingPerms();
 
         await me.EditUserInterface(idx, newQuote, user);
     }
@@ -80,11 +66,6 @@ public class Quote : InteractionModuleBase<SocketInteractionContext>, IQuoteInte
                     .Select(x => new AutocompleteResult(x.Truncate(100), storage.FindIndex(y => y == x) + 1)));
         }
     }
-
-    public async Task Respond(string text = null, Embed embed = null, bool ephemeral = false, MessageComponent components = null)
-        => await RespondAsync(text, embed: embed, ephemeral: ephemeral, components: components);
-    public async Task React(IEmote emote) => await me.RespondEphermeral(emote.ToString());
-    public SocketGuild Guild() => Context.Guild;
-    public SocketUser User() => Context.User;
+    
     public Task RespondMultiple(IEnumerable<string> messages) => me.RespondEphermeral(messages.First());
 }

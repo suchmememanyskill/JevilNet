@@ -9,7 +9,7 @@ namespace JevilNet.Modules.SlashCommands;
 
 [RequireContext(ContextType.Guild)]
 [Group("role", "role command group")]
-public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInterface
+public class Roles : SlashCommandBase, IRoleInterface
 {
     public RoleService RoleService { get; set; }
     public IRoleInterface me => this;
@@ -30,7 +30,9 @@ public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInter
     public async Task CreateRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, string roleName,
         string description, IUser? user = null)
     {
-        CheckPerms(user);
+        if (user != null)
+            me.ThrowOnMissingPerms();
+        
         await me.AddRoleToSet(setId, roleName, description, user);
     }
 
@@ -39,7 +41,9 @@ public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInter
     public async Task AddRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, IRole role,
         string description, IUser? user = null)
     {
-        CheckPerms(user);
+        if (user != null)
+            me.ThrowOnMissingPerms();
+        
         await me.AddRoleToSet(setId, role.Id, description, user);
     }
 
@@ -48,7 +52,9 @@ public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInter
     public async Task RemoveRoleSetCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId,
         IUser? user = null)
     {
-        CheckPerms(user);
+        if (user != null)
+            me.ThrowOnMissingPerms();
+        
         await me.RemoveSet(setId, user);
     }
     
@@ -56,7 +62,9 @@ public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInter
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public async Task RemoveRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, IRole role, IUser? user = null)
     {
-        CheckPerms(user);
+        if (user != null)
+            me.ThrowOnMissingPerms();
+        
         await me.RemoveRoleFromSet(setId, role.Id, user);
     }
 
@@ -105,22 +113,4 @@ public class Roles : InteractionModuleBase<SocketInteractionContext>, IRoleInter
                     .Select(x => new AutocompleteResult(x.SetName, x.Id)));
         }
     }
-
-    private void CheckPerms(IUser? user = null, GuildPermission permission = GuildPermission.Administrator)
-    {
-        if (user != null)
-        {
-            var guildUser = Context.User as IGuildUser;
-            if (!guildUser.GuildPermissions.Has(permission))
-            {
-                me.Exception("You are not allowed to do this");
-            }
-        }
-    }
-    
-    public async Task Respond(string text = null, Embed embed = null, bool ephemeral = false, MessageComponent components = null)
-        => await RespondAsync(text, embed: embed, ephemeral: ephemeral, components: components);
-    public async Task React(IEmote emote) => await me.RespondEphermeral(emote.ToString());
-    public SocketGuild Guild() => Context.Guild;
-    public SocketUser User() => Context.User;
 }

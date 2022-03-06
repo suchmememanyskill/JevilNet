@@ -14,7 +14,7 @@ namespace JevilNet.Modules.TextCommands;
 [Alias("quotes", "forcequote")]
 [Summary("A module that posts a quote or an old message in the desired channel. People can only add quotes with the 'Quoter' role")]
 [RequireContext(ContextType.Guild)]
-public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
+public class Quote : TextCommandBase, IQuoteInterface
 {
     public QuoteService QuoteService { get; set; }
     private IQuoteInterface me => this;
@@ -74,15 +74,6 @@ public class Quote : ModuleBase<SocketCommandContext>, IQuoteInterface
         await QuoteService.SetQuoteChannel(Context.Guild.Id, 0);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
-
-
-    public Task Respond(string text = null, Embed embed = null, bool ephemeral = false, MessageComponent components = null)
-        => ReplyAsync(text, embed: embed, allowedMentions: AllowedMentions.None, components: components);
-    public Task React(IEmote emote) => Context.Message.AddReactionAsync(emote);
-
-    public SocketGuild Guild() => Context.Guild;
-
-    public SocketUser User() => Context.User;
 
     public async Task RespondMultiple(IEnumerable<string> messages)
     {
