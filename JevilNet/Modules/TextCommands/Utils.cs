@@ -91,4 +91,29 @@ public class Utils : ModuleBase<SocketCommandContext>
         await Client.SetGameAsync(game);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
+
+    [Command("avatar")]
+    [Summary("Gets a users avatar")]
+    public async Task GetAvatar(ulong id)
+        => await GetAvatar(await Client.GetUserAsync(id));
+    
+    [Command("avatar")]
+    [Summary("Gets a users avatar")]
+    public async Task GetAvatar(IUser? user = null)
+    {
+        string url;
+        user ??= Context.User;
+
+        if (user.AvatarId.StartsWith("a_"))
+            url = user.GetAvatarUrl(ImageFormat.Gif, 512);
+        else
+            url = user.GetAvatarUrl(ImageFormat.Png, 512);
+
+        EmbedBuilder builder = new EmbedBuilder()
+            .WithImageUrl(url)
+            .WithTitle($"{user.Username}'s Avatar")
+            .WithColor(((uint)Program.Random.Next()) & 0x00FFFFFF);
+        
+        await ReplyAsync(embed: builder.Build());
+    }
 }
