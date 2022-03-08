@@ -26,6 +26,9 @@ public class Quote : SlashCommandBase, IQuoteInterface
 
     [SlashCommand("list", "Lists quotes from yourself or a specific user")]
     public async Task ListUser(IUser user = null, int page = 1) => await me.ListUserInterface(user, page);
+    
+    [SlashCommand("listall", "Lists all quotes from this server")]
+    public Task ListAll() => me.ListAllInterface();
 
     [SlashCommand("del", "Deletes a specific quote from either you or someone else. Editing others requires admin")]
     public async Task DelUser([Autocomplete(typeof(QuoteSearchAutocompleteHandler))] int idx, IUser user = null)

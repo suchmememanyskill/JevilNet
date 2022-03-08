@@ -38,6 +38,10 @@ public class Quote : TextCommandBase, IQuoteInterface
     [Summary("Lists quotes that you have added")]
     public Task ListSelf(int page = 1) => ListUser(Context.User, page);
 
+    [Command("listall")]
+    [Summary("Lists all quotes from this server")]
+    public Task ListAll() => me.ListAllInterface();
+
     [Command("del")]
     [Alias("delete")]
     [Summary("Deletes a specific quote from a specific user")]

@@ -36,6 +36,19 @@ public interface IQuoteInterface : IBaseInterface
 
         await RespondEphermeral(quote);
     }
+
+    public async Task ListAllInterface()
+    {
+        List<string> combined = QuoteService.GetOrDefaultServerStorage(Guild().Id).GetCombinedStorage();
+        if (combined.Count <= 0)
+        {
+            await RespondEphermeral("No quotes have been added to this server");
+            return;
+        }
+        
+        MenuStorage storage = new(20, combined.Select((x, i) => $"{i + 1}: {x}").ToList(), $"{Guild().Name}'s quotes");
+        await MenuService.CreateMenu(async (embed, component) => await RespondEphermeral(embed: embed, components: component), storage, 1);
+    }
     
     public async Task AddQuoteInterface(string quote)
     {
