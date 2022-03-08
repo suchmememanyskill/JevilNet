@@ -15,7 +15,7 @@ public class MenuService
 {
     public Dictionary<long, MenuStorage> storage = new();
 
-    public async void CreateMenu(MenuServiceSendCallback callback, MenuStorage menu, int startingPage = 1)
+    public async Task CreateMenu(MenuServiceSendCallback callback, MenuStorage menu, int startingPage = 1)
     {
         long id = Program.Random.NextInt64();
         storage.Add(id, menu);

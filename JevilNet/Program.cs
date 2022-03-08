@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using JevilNet.Extentions;
 using JevilNet.Services;
+using JevilNet.Services.CustomCommand;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Roles;
 using JevilNet.Services.Vote;
@@ -112,6 +113,7 @@ class Program
             .AddSingleton<QuoteService>()
             .AddSingleton<RoleService>()
             .AddSingleton<MenuService>()
+            .AddSingleton<CustomCommandService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )

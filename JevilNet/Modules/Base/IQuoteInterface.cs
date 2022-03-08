@@ -69,7 +69,7 @@ public interface IQuoteInterface : IBaseInterface
         }
 
         MenuStorage storage = new(20, userQuotes.CustomStorage.Select((x, i) => $"{i + 1}: {x}").ToList(), $"{user.Username}'s quotes");
-        MenuService.CreateMenu(async (embed, component) => await RespondEphermeral(embed: embed, components: component), storage, page);
+        await MenuService.CreateMenu(async (embed, component) => await RespondEphermeral(embed: embed, components: component), storage, page);
     }
     
     public async Task DelUserInterface(int idx, IUser user = null)
