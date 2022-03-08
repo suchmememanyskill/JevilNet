@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using JevilNet.Attributes;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
+using JevilNet.Services;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Roles;
 using ContextType = Discord.Commands.ContextType;
@@ -17,6 +18,7 @@ namespace JevilNet.Modules.TextCommands;
 public class Quote : TextCommandBase, IQuoteInterface
 {
     public QuoteService QuoteService { get; set; }
+    public MenuService MenuService { get; set; }
     private IQuoteInterface me => this;
 
     [Command]

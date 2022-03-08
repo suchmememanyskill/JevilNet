@@ -1,5 +1,6 @@
 ﻿using Discord;
 using JevilNet.Extentions;
+using JevilNet.Services;
 using JevilNet.Services.Quote;
 
 namespace JevilNet.Modules.Base;
@@ -7,6 +8,7 @@ namespace JevilNet.Modules.Base;
 public interface IQuoteInterface : IBaseInterface
 {
     public QuoteService QuoteService { get; set; }
+    public MenuService MenuService { get; set; }
 
     public Task RespondMultiple(IEnumerable<string> messages);
     
@@ -59,7 +61,6 @@ public interface IQuoteInterface : IBaseInterface
         }
         
         var userQuotes = QuoteService.GetOrDefaultUserStorage(Guild().Id, user.Id);
-        page--;
 
         if (userQuotes.CustomStorage.Count <= 0)
         {
@@ -67,14 +68,8 @@ public interface IQuoteInterface : IBaseInterface
             return;
         }
 
-        string header = $"{user.Username}'s quotes: ({page + 1}/{(userQuotes.CustomStorage.Count + 19) / 20})\n\n";
-        header += String.Join("\n", userQuotes
-            .CustomStorage
-            .Skip(page * 20)
-            .Take(20)
-            .Select((x, i) => $"{i + 1 + page * 20}: {x}"));
-
-        await RespondMultiple(header.SplitInParts(1900));
+        MenuStorage storage = new(20, userQuotes.CustomStorage.Select((x, i) => $"{i + 1}: {x}").ToList(), $"{user.Username}'s quotes");
+        MenuService.CreateMenu(async (embed, component) => await RespondEphermeral(embed: embed, components: component), storage, page);
     }
     
     public async Task DelUserInterface(int idx, IUser user = null)

@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using JevilNet.Extentions;
 using JevilNet.Modules.Base;
+using JevilNet.Services;
 using JevilNet.Services.Quote;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ namespace JevilNet.Modules.SlashCommands;
 public class Quote : SlashCommandBase, IQuoteInterface
 {
     public QuoteService QuoteService { get; set; }
+    public MenuService MenuService { get; set; }
     private IQuoteInterface me => this;
 
     [SlashCommand("get", "Get a random or specific quote")]

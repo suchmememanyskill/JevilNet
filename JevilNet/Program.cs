@@ -111,6 +111,7 @@ class Program
             .AddSingleton<VoteService>()
             .AddSingleton<QuoteService>()
             .AddSingleton<RoleService>()
+            .AddSingleton<MenuService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
