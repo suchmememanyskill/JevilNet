@@ -65,13 +65,14 @@ public class VoteTextCommands : ModuleBase<SocketCommandContext>
     }
 
     [Command("end")]
+    [Alias("stop", "del")]
     [VoteActive]
     [VoteCreator(Group = "Permission")]
     [RequireOwner(Group = "Permission")]
     [Summary("Ends a vote")]
     public async Task EndVote()
     {
-        await ReplyAsync(embed: VoteService.BuildTallyEmbed(Context.Guild.Id).Build());;
+        await ReplyAsync(embed: VoteService.BuildTallyEmbed(Context.Guild.Id).Build());
         await VoteService.EndVote(Context.Guild.Id);
         await Context.Message.AddReactionAsync(Emoji.Parse(":+1:"));
     }
