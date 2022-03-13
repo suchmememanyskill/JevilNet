@@ -66,11 +66,14 @@ public class Roles : SlashCommandBase, IRoleInterface
             var roles = services.GetRequiredService<RoleService>();
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
-
-            string user = (string)autocompleteInteraction.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? context.User.Id.ToString();
-            ulong userId = UInt64.Parse(user);
             
-            var storage = roles.GetOrDefaultUserStorage(context.Guild.Id, userId).CustomStorage;
+            List<RoleSet> storage;
+
+            if ((context.User as IGuildUser).GuildPermissions.Has(GuildPermission.Administrator))
+                storage = roles.GetOrDefaultServerStorage(context.Guild.Id).GetCombinedStorage();
+            else
+                storage = roles.GetOrDefaultUserStorage(context.Guild.Id, context.User.Id).CustomStorage;
+            
             return AutocompletionResult.FromSuccess(
                 storage.Where(x => x.SetName.ToLower().Contains(search))
                     .Take(25)
@@ -90,13 +93,7 @@ public class Roles : SlashCommandBase, IRoleInterface
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
 
-            List<RoleSet> storage;
-
-            if ((context.User as IGuildUser).GuildPermissions.Has(GuildPermission.Administrator))
-                storage = roles.GetOrDefaultServerStorage(context.Guild.Id).GetCombinedStorage();
-            else
-                storage = roles.GetOrDefaultUserStorage(context.Guild.Id, context.User.Id).CustomStorage;
-            
+            List<RoleSet> storage = roles.GetOrDefaultServerStorage(context.Guild.Id).GetCombinedStorage();
             return AutocompletionResult.FromSuccess(
                 storage.Where(x => x.SetName.ToLower().Contains(search))
                     .Take(25)
