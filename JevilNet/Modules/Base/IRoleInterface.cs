@@ -100,7 +100,7 @@ public interface IRoleInterface : IBaseInterface
             .WithMinValues(0)
             .WithMaxValues(set.Roles.Count);
         
-        set.Roles.ForEach(x => menu.AddOption(x.Name, x.Id.ToString(), x.Description));
+        set.Roles.ForEach(x => menu.AddOption(x.Name, x.Id.ToString(), (x.Description == "-") ? null : x.Description));
 
         await RespondEphermeral($"Pick roles from {set.SetName}!", components:  new ComponentBuilder().WithSelectMenu(menu).Build());
     }
