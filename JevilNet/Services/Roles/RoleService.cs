@@ -19,7 +19,7 @@ public class RoleService : UserSpecificGuildStorage<Empty, RoleSet>
         if (setName.Length > 50)
             throw new Exception("Role set name is too long!");
 
-        if (GetOrDefaultServerStorage(serverId).GetCombinedStorage().Count >= 20)
+        if (GetOrDefaultServerStorage(serverId).GetCombinedStorage().Count >= 5)
             throw new Exception("Server has reached the max amount of role sets");
         
         await AddToUser(serverId, userId, username, new RoleSet(setName));
@@ -36,6 +36,30 @@ public class RoleService : UserSpecificGuildStorage<Empty, RoleSet>
 
     public RoleSet? GetRoleSet(ulong serverId, ulong userId, int setId)
         => GetOrDefaultUserStorage(serverId, userId).CustomStorage.Find(x => x.Id == setId);
+
+    public UserStorage<RoleSet>? GetSetOwner(ulong serverId, string setName)
+    {
+        foreach (var x in GetOrDefaultServerStorage(serverId).UserStorage)
+        {
+            var s = x.CustomStorage.Find(x => x.SetName == setName);
+            if (s != null)
+                return x;
+        }
+
+        return null;
+    }
+    
+    public UserStorage<RoleSet>? GetSetOwner(ulong serverId, int setId)
+    {
+        foreach (var x in GetOrDefaultServerStorage(serverId).UserStorage)
+        {
+            var s = x.CustomStorage.Find(x => x.Id == setId);
+            if (s != null)
+                return x;
+        }
+
+        return null;
+    }
 
     public async Task AddToSet(SocketGuild guild, RoleSet set, string name, string desc)
     {

@@ -28,46 +28,33 @@ public class Roles : SlashCommandBase, IRoleInterface
     [SlashCommand("addnew", "Create and add a role to a set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public async Task CreateRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, string roleName,
-        string description, IUser? user = null)
+        string description)
     {
-        if (user != null)
-            me.ThrowOnMissingPerms();
-        
-        await me.AddRoleToSet(setId, roleName, description, user);
+        await me.AddRoleToSet(setId, roleName, description);
     }
 
     [SlashCommand("add", "Add an existing role to a set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public async Task AddRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, IRole role,
-        string description, IUser? user = null)
+        string description)
     {
-        if (user != null)
-            me.ThrowOnMissingPerms();
-        
-        await me.AddRoleToSet(setId, role.Id, description, user);
+        await me.AddRoleToSet(setId, role.Id, description);
     }
 
     [SlashCommand("removeset", "Delete a role set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
-    public async Task RemoveRoleSetCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId,
-        IUser? user = null)
+    public async Task RemoveRoleSetCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId)
     {
-        if (user != null)
-            me.ThrowOnMissingPerms();
-        
-        await me.RemoveSet(setId, user);
+        await me.RemoveSet(setId);
     }
     
     [SlashCommand("remove", "Remove a role from a set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
-    public async Task RemoveRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, IRole role, IUser? user = null)
+    public async Task RemoveRoleCommand([Autocomplete(typeof(RoleGuildUserAutocompleteHandler))] int setId, IRole role)
     {
-        if (user != null)
-            me.ThrowOnMissingPerms();
-        
-        await me.RemoveRoleFromSet(setId, role.Id, user);
+        await me.RemoveRoleFromSet(setId, role.Id);
     }
-
+    
     public class RoleGuildUserAutocompleteHandler : AutocompleteHandler
     {
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
@@ -103,10 +90,13 @@ public class Roles : SlashCommandBase, IRoleInterface
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
 
-            string user = (string)autocompleteInteraction.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? context.User.Id.ToString();
-            ulong userId = UInt64.Parse(user);
+            List<RoleSet> storage;
 
-            var storage = roles.GetOrDefaultServerStorage(context.Guild.Id).GetCombinedStorage();
+            if ((context.User as IGuildUser).GuildPermissions.Has(GuildPermission.Administrator))
+                storage = roles.GetOrDefaultServerStorage(context.Guild.Id).GetCombinedStorage();
+            else
+                storage = roles.GetOrDefaultUserStorage(context.Guild.Id, context.User.Id).CustomStorage;
+            
             return AutocompletionResult.FromSuccess(
                 storage.Where(x => x.SetName.ToLower().Contains(search))
                     .Take(25)

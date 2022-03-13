@@ -1,13 +1,15 @@
 ﻿using Discord.Interactions;
 using Discord.WebSocket;
+using JevilNet.Modules.Base;
 using JevilNet.Services.Roles;
 
 namespace JevilNet.Modules.Interactions;
 
 [RequireContext(ContextType.Guild)]
-public class RoleInteractions : InteractionModuleBase<SocketInteractionContext>
+public class RoleInteractions : SlashCommandBase, IRoleInterface
 {
     public RoleService RoleService { get; set; }
+    private IRoleInterface me => this;
 
     [ComponentInteraction("roleselect:*")]
     public async Task RoleSelect(string strId, params string[] selections)
@@ -40,5 +42,12 @@ public class RoleInteractions : InteractionModuleBase<SocketInteractionContext>
         }
 
         await RespondAsync("Added/Removed roles!", ephemeral: true);
+    }
+
+    [ComponentInteraction("roleview:*")]
+    public async Task RoleView(string strId)
+    {
+        int id = int.Parse(strId);
+        await me.ViewSet(id);
     }
 }

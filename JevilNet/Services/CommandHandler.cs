@@ -64,7 +64,7 @@ public class CommandHandler
 
     # region Interaction Error Handling
 
-    private Task ComponentInteractionCommandExecuted(ComponentCommandInfo arg1, Discord.IInteractionContext arg2,
+    private async Task ComponentInteractionCommandExecuted(ComponentCommandInfo arg1, Discord.IInteractionContext arg2,
         Discord.Interactions.IResult arg3)
     {
         if (!arg3.IsSuccess)
@@ -81,7 +81,14 @@ public class CommandHandler
                     // implement
                     break;
                 case InteractionCommandError.Exception:
-                    // implement
+                    if (arg3 is Discord.Interactions.ExecuteResult execResult)
+                    {
+                        if (arg2 is SocketInteractionContext ctx2)
+                        {
+                            await ctx2.Interaction.RespondAsync(execResult.Exception.Message, ephemeral:true);
+                            return;
+                        }
+                    }
                     break;
                 case InteractionCommandError.Unsuccessful:
                     // implement
@@ -90,8 +97,6 @@ public class CommandHandler
                     break;
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private Task ContextInteractionCommandExecuted(ContextCommandInfo arg1, Discord.IInteractionContext arg2,

@@ -38,32 +38,16 @@ public class Roles : TextCommandBase, IRoleInterface
     [Priority(0)]
     [Summary("Create and add a role to a set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
-    public Task CreateRoleCommand(string setName, string roleName, [Remainder] string description)
-        => me.AddRoleToSet(setName, roleName, description);
-    
+    public async Task CreateRoleCommand(string setName, string roleName, [Remainder] string description)
+        => await me.AddRoleToSet(setName, roleName, description);
+
     [Command("add")]
     [Alias("create")]
-    [Summary("Create and add a role to a set of another user")]
     [Priority(1)]
-    [RequireUserPermission(GuildPermission.Administrator)]
-    public Task CreateRoleCommand(string setName, string roleName, IUser user, [Remainder] string description)
-        => me.AddRoleToSet(setName, roleName, description, user);
-    
-    [Command("add")]
-    [Alias("create")]
-    [Priority(2)]
     [Summary("Add an existing role to a set")]
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public Task CreateRoleCommand(string setName, ulong roleId, [Remainder] string description)
         => me.AddRoleToSet(setName, roleId, description);
-    
-    [Command("add")]
-    [Alias("create")]
-    [Summary("Add an existing role to a set of another user")]
-    [Priority(3)]
-    [RequireUserPermission(GuildPermission.Administrator)]
-    public Task CreateRoleCommand(string setName, ulong roleId, IUser user, [Remainder] string description)
-        => me.AddRoleToSet(setName, roleId, description, user);
 
     [Command("removeset")]
     [Alias("delset", "setremove", "setdel")]
@@ -71,13 +55,6 @@ public class Roles : TextCommandBase, IRoleInterface
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public Task RemoveSetCommand(string setName)
         => me.RemoveSet(setName);
-    
-    [Command("removeset")]
-    [Alias("delset", "setremove", "setdel")]
-    [Summary("Delete a set from another user")]
-    [RequireUserPermission(GuildPermission.Administrator)]
-    public Task RemoveSetCommand(string setName, IUser user)
-        => me.RemoveSet(setName, user);
 
     [Command("remove")]
     [Summary("Remove a role from a set")]
@@ -85,26 +62,12 @@ public class Roles : TextCommandBase, IRoleInterface
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public Task RemoveRoleCommand(string setName, [Remainder] string roleName)
         => me.RemoveRoleFromSet(setName, roleName);
-    
-    [Command("remove")]
-    [Summary("Remove a role from a set of another user")]
-    [Priority(1)]
-    [RequireUserPermission(GuildPermission.Administrator)]
-    public Task RemoveRoleCommand(string setName, IUser user, [Remainder] string roleName)
-        => me.RemoveRoleFromSet(setName, roleName, user);
-    
+
     [Command("remove")]
     [Summary("Remove a role from a set")]
-    [Priority(2)]
+    [Priority(1)]
     [RequireUserPermission(GuildPermission.ManageRoles)]
     public Task RemoveRoleCommand(string setName, ulong roleId)
         => me.RemoveRoleFromSet(setName, roleId);
-    
-    [Command("remove")]
-    [Priority(3)]
-    [Summary("Remove a role from a set of another user")]
-    [RequireUserPermission(GuildPermission.Administrator)]
-    public Task RemoveRoleCommand(string setName, IUser user, ulong roleId)
-        => me.RemoveRoleFromSet(setName, roleId, user);
-    
+
 }

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using JevilNet.Modules.SlashCommands;
 using JevilNet.Services.Roles;
 using JevilNet.Services.UserSpecificGuildStorage;
 
@@ -9,54 +10,66 @@ public interface IRoleInterface : IBaseInterface
 {
     public RoleService RoleService { get; set; }
 
-    public RoleSet GetCurrentSet(string setName, IUser? user = null)
+    public Tuple<UserStorage<RoleSet>, RoleSet> GetCurrentSet(string setName)
     {
-        if (user == null)
-            user = User();
-
-        RoleSet? set = RoleService.GetRoleSet(Guild().Id, user.Id, setName);
+        var userStorage = RoleService.GetSetOwner(Guild().Id, setName);
         
-        if (set == null)
+        if (userStorage == null)
             Exception("Did not find set");
+        
+        if (userStorage!.UserId != User().Id)
+            ThrowOnMissingPerms();
+        
+        var set = RoleService.GetRoleSet(Guild().Id, userStorage!.UserId, setName);
 
-        return set!;
+        return new(userStorage!, set!);
     }
     
-    public RoleSet GetCurrentSet(int setId, IUser? user = null)
+    public Tuple<UserStorage<RoleSet>, RoleSet> GetCurrentSet(int setId)
     {
-        if (user == null)
-            user = User();
-
-        RoleSet? set = RoleService.GetRoleSet(Guild().Id, user.Id, setId);
+        var userStorage = RoleService.GetSetOwner(Guild().Id, setId);
         
-        if (set == null)
+        if (userStorage == null)
             Exception("Did not find set");
+        
+        if (userStorage!.UserId != User().Id)
+            ThrowOnMissingPerms();
+        
+        var set = RoleService.GetRoleSet(Guild().Id, userStorage!.UserId, setId);
 
-        return set!;
+        return new(userStorage!, set!);
     }
-    
+
     // Get
-    public async Task GetRoleSets()
+    public async Task GetRoleSets(ulong userId = 0)
     {
-        string combined = string.Join("\n",
-            RoleService.GetOrDefaultServerStorage(Guild().Id).GetCombinedStorage().Select(x => x.SetName));
+        string name;
+        List<RoleSet> roleSets;
 
-        if (string.IsNullOrWhiteSpace(combined))
-            Exception("No role sets found");
+        if (userId == 0)
+        {
+            roleSets = RoleService.GetOrDefaultServerStorage(Guild().Id).GetCombinedStorage();
+            name = Guild().Name;
+        }
+        else
+        {
+            UserStorage<RoleSet>? user = RoleService.GetOrDefaultServerStorage(Guild().Id).UserStorage
+                .Find(x => x.UserId == userId);
+            
+            if (user == null)
+                Exception("User not found");
+
+            roleSets = user!.CustomStorage;
+            name = $"{Guild().Name} from {user.UserName}";
+        }
+            
         
-        await RespondEphermeral($"Role sets in {Guild().Name}:\n\n{combined}");
-    }
+        if (roleSets.Count <= 0)
+            Exception("Server/User has no role sets");
 
-    public async Task GetRoleSets(ulong userId)
-    {
-        UserStorage<RoleSet>? user = RoleService.GetOrDefaultServerStorage(Guild().Id).UserStorage
-            .Find(x => x.UserId == userId);
-
-        if (user == null || user.CustomStorage.Count <= 0)
-            Exception("User has no role sets");
-
-        string combined = string.Join("\n", user.CustomStorage.Select(x => x.SetName));
-        await RespondEphermeral($"Role sets in {Guild().Name} from {user.UserName}:\n\n{combined}");
+        ComponentBuilder builder = new ComponentBuilder();
+        roleSets.ForEach(x => builder.WithButton(x.SetName, $"roleview:{x.Id.ToString()}"));
+        await RespondEphermeral($"Role sets in {name}", components: builder.Build());
     }
     
     public async Task ViewSet(string setName)
@@ -101,38 +114,36 @@ public interface IRoleInterface : IBaseInterface
     }
     
 
-    public async Task AddRoleToSet(string setName, string roleName, string description, IUser? user = null)
+    public async Task AddRoleToSet(string setName, string roleName, string description)
     {
-        RoleSet set = GetCurrentSet(setName, user);
-        await AddRoleToSet(set.Id, roleName, description, user);
+        var set = GetCurrentSet(setName);
+        await AddRoleToSet(set.Item2.Id, roleName, description);
     }
 
-    public async Task AddRoleToSet(int setId, string roleName, string description, IUser? user = null)
+    public async Task AddRoleToSet(int setId, string roleName, string description)
     {
-        RoleSet set = GetCurrentSet(setId, user);
+        var set = GetCurrentSet(setId);
         
-        await RoleService.AddToSet(Guild(), set!, roleName, description);
+        await RoleService.AddToSet(Guild(), set.Item2, roleName, description);
         await React(Emoji.Parse(":+1:"));
     }
     
-    public async Task AddRoleToSet(string setName, ulong roleId, string description, IUser? user = null)
+    public async Task AddRoleToSet(string setName, ulong roleId, string description)
     {
-        RoleSet set = GetCurrentSet(setName, user);
-        await AddRoleToSet(set.Id, roleId, description, user);
+        var set = GetCurrentSet(setName);
+        await AddRoleToSet(set.Item2.Id, roleId, description);
     }
 
-    public async Task AddRoleToSet(int setId, ulong roleId, string description, IUser? user = null)
+    public async Task AddRoleToSet(int setId, ulong roleId, string description)
     {
-        RoleSet set = GetCurrentSet(setId, user);
+        var set = GetCurrentSet(setId);
 
         SocketRole role = Guild().GetRole(roleId);
         
         if (role == null)
             Exception("Could not find role");
 
-        user ??= User();
-
-        if (user is SocketGuildUser guildUser)
+        if (User() is SocketGuildUser guildUser)
         {
             int maxRolePos = guildUser.Roles.Max(x => x.Position);
             if (role!.Position >= maxRolePos)
@@ -141,64 +152,58 @@ public interface IRoleInterface : IBaseInterface
         else
             Exception("Not in a guild?");
 
-        await RoleService.AddToSet(set!, role!, description);
+        await RoleService.AddToSet(set.Item2!, role!, description);
         await React(Emoji.Parse(":+1:"));
     }
 
     
     // Remove
-    public async Task RemoveRoleFromSet(string setName, string roleName, IUser? user = null)
+    public async Task RemoveRoleFromSet(string setName, string roleName)
     {
-        RoleSet set = GetCurrentSet(setName, user);
-        await RemoveRoleFromSet(set.Id, roleName, user);
+        var set = GetCurrentSet(setName);
+        await RemoveRoleFromSet(set.Item2.Id, roleName);
     }
 
-    public async Task RemoveRoleFromSet(int setId, string roleName, IUser? user = null)
+    public async Task RemoveRoleFromSet(int setId, string roleName)
     {
-        RoleSet set = GetCurrentSet(setId, user);
+        var set = GetCurrentSet(setId);
 
-        RoleEntry? entry = set.Roles.Find(x => x.Name == roleName);
+        RoleEntry? entry = set.Item2.Roles.Find(x => x.Name == roleName);
         
         if (entry == null)
             Exception("Could not find role");
 
-        await RoleService.RemoveFromSet(set, entry!.Id);
+        await RoleService.RemoveFromSet(set.Item2, entry!.Id);
         await React(Emoji.Parse(":+1:"));
     }
 
-    public async Task RemoveRoleFromSet(string setName, ulong roleId, IUser? user = null)
+    public async Task RemoveRoleFromSet(string setName, ulong roleId)
     {
-        RoleSet set = GetCurrentSet(setName, user);
-        await RoleService.RemoveFromSet(set, roleId);
+        var set = GetCurrentSet(setName);
+        await RoleService.RemoveFromSet(set.Item2, roleId);
         await React(Emoji.Parse(":+1:"));
     }
 
-    public async Task RemoveRoleFromSet(int setId, ulong roleId, IUser? user = null)
+    public async Task RemoveRoleFromSet(int setId, ulong roleId)
     {
-        RoleSet set = GetCurrentSet(setId, user);
-        await RoleService.RemoveFromSet(set, roleId);
-        await React(Emoji.Parse(":+1:"));
-    }
-    
-    public async Task RemoveSet(string setName, IUser? user = null)
-    {
-        RoleSet set = GetCurrentSet(setName, user);
-
-        if (user == null)
-            user = User();
-
-        await RoleService.DeleteSet(Guild().Id, user.Id, set);
+        var set = GetCurrentSet(setId);
+        await RoleService.RemoveFromSet(set.Item2, roleId);
         await React(Emoji.Parse(":+1:"));
     }
     
-    public async Task RemoveSet(int setId, IUser? user = null)
+    public async Task RemoveSet(string setName)
     {
-        RoleSet set = GetCurrentSet(setId, user);
+        var set = GetCurrentSet(setName);
 
-        if (user == null)
-            user = User();
+        await RoleService.DeleteSet(Guild().Id, set.Item1.UserId, set.Item2);
+        await React(Emoji.Parse(":+1:"));
+    }
+    
+    public async Task RemoveSet(int setId)
+    {
+        var set = GetCurrentSet(setId);
 
-        await RoleService.DeleteSet(Guild().Id, user.Id, set);
+        await RoleService.DeleteSet(Guild().Id, set.Item1.UserId, set.Item2);
         await React(Emoji.Parse(":+1:"));
     }
 }
