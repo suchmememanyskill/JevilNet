@@ -16,9 +16,10 @@ public class VoteTextCommands : ModuleBase<SocketCommandContext>
     [Summary("Initiates the vote interaction menu")]
     public async Task InitiateVoteMenu()
     {
-        if (VoteService.GetOrDefaultServerStorage(Context.Guild.Id).CustomStorage.Active)
+        var model = VoteService.GetOrDefaultServerStorage(Context.Guild.Id).CustomStorage;
+        if (model.Active)
         {
-            await ReplyAsync("A vote is currently active", components: VoteService.BuildMainView(Context.Guild.Id).Build());
+            await ReplyAsync(model.Name, components: VoteService.BuildMainView(Context.Guild.Id).Build(), allowedMentions: AllowedMentions.None);
         }
         else
         {
