@@ -33,6 +33,7 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("voiceactivity", "Creates an invite for a discord voice activity")]
     [RequireContext(ContextType.Guild)]
+    [RequireUserPermission(GuildPermission.CreateInstantInvite)]
     public async Task VoiceActivity([Autocomplete(typeof(DiscordActivityAutocomplete))] string appId, IVoiceChannel voice)
     {
         DiscordActivity? activity = activities.Find(x => x.appId == appId);

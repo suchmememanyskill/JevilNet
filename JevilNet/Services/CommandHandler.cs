@@ -5,6 +5,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using ExecuteResult = Discord.Commands.ExecuteResult;
+using PreconditionResult = Discord.Commands.PreconditionResult;
 
 namespace JevilNet.Services;
 
@@ -67,12 +68,17 @@ public class CommandHandler
     private async Task ComponentInteractionCommandExecuted(ComponentCommandInfo arg1, Discord.IInteractionContext arg2,
         Discord.Interactions.IResult arg3)
     {
+        Console.WriteLine($"{DateTime.Now}: {arg2.User.Username} executed interaction {arg1.Name}");
+        
         if (!arg3.IsSuccess)
         {
             switch (arg3.Error)
             {
                 case InteractionCommandError.UnmetPrecondition:
-                    // implement
+                    if (arg2 is SocketInteractionContext ctx)
+                    {
+                        await ctx.Interaction.RespondAsync("You are missing permissions to do this", ephemeral:true);
+                    }
                     break;
                 case InteractionCommandError.UnknownCommand:
                     // implement
@@ -268,10 +274,19 @@ public class CommandHandler
                 
                 await context.Channel.SendMessageAsync("Invalid command usage!", embed: builder.Build());
                 break;
+            
             case CommandError.Exception:
                 if (result is ExecuteResult execResult)
                 {
                     await context.Channel.SendMessageAsync(execResult.Exception.Message,
+                        allowedMentions: AllowedMentions.None);
+                    return;
+                }
+                goto default;
+            case CommandError.UnmetPrecondition:
+                if (result is PreconditionResult preResult)
+                {
+                    await context.Channel.SendMessageAsync(preResult.ErrorReason,
                         allowedMentions: AllowedMentions.None);
                     return;
                 }
