@@ -13,7 +13,7 @@ public class ProxySender
         this.credentials = credentials;
     }
 
-    public static ProxySender GetDefault() => new("socks5://82.196.7.200:2434", new("vpn", "unlimited"));
+    public static ProxySender GetDefault() => new("socks5://142.93.68.63:2434", new("vpn", "unlimited"));
 
     public async Task<string> Get(Uri uri, NetworkCredential? credential = null)
     {
