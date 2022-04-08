@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -115,5 +116,87 @@ public class Utils : ModuleBase<SocketCommandContext>
             .WithColor(((uint)Program.Random.Next()) & 0x00FFFFFF);
         
         await ReplyAsync(embed: builder.Build());
+    }
+
+    private static readonly Dictionary<string, string> validDelugeLocations = new Dictionary<string, string>()
+    {
+        {"movies", "/media/SyncUsb/Jellyfin/Movies"},
+        {"music", "/media/SyncUsb/Jellyfin/Music"},
+        {"shows", "/media/SyncUsb/Jellyfin/Shows"},
+        {"other", "/media/SyncUsb/Jellyfin/other"},
+    };
+    
+    [Command("delugestart")]
+    [Summary("Starts a deluge download")]
+    [RequireOwner]
+    public async Task DelugeStart(string location, [Remainder] string magnetUrl)
+    {
+        location = location.ToLower();
+
+        if (!validDelugeLocations.ContainsKey(location))
+        {
+            await ReplyAsync(
+                $"Invalid location! Valid locations are:\n- {string.Join("\n- ", validDelugeLocations.Keys.ToList())}");
+            return;
+        }
+
+        Process p = new Process();
+        p.StartInfo.UseShellExecute = false;
+        p.StartInfo.RedirectStandardOutput = true;
+        p.StartInfo.FileName = "deluge-console";
+        p.StartInfo.Arguments = $"add -p {validDelugeLocations[location]} {magnetUrl}";
+
+        p.Start();
+        string output = await p.StandardOutput.ReadToEndAsync();
+        await p.WaitForExitAsync();
+        
+        Console.WriteLine(output);
+
+        if (output.Trim() != "Torrent added!")
+        {
+            await ReplyAsync($"Adding url failed! Output: {output}", allowedMentions: AllowedMentions.None);
+            return;
+        }
+
+        await ReplyAsync("Successfully added!");
+    }
+
+    [Command("delugestatus")]
+    [Summary("Gets the in progress downloads for deluge")]
+    [RequireOwner]
+    public async Task DelugeStatus()
+    {
+        Process p = new Process();
+        p.StartInfo.UseShellExecute = false;
+        p.StartInfo.RedirectStandardOutput = true;
+        p.StartInfo.FileName = "deluge-console";
+        p.StartInfo.Arguments = "info";
+        
+        p.Start();
+        string output = await p.StandardOutput.ReadToEndAsync();
+        await p.WaitForExitAsync();
+
+        List<string> items = new();
+        string name = null;
+        
+        foreach (var s in output.Split('\n'))
+        {
+            if (s.StartsWith("Name"))
+                name = s.Substring(6);
+            else if (s.StartsWith("State"))
+            {
+                if (!s.Substring(7).StartsWith("Downloading")) 
+                    name = null;
+            }
+            else if (s.StartsWith("Size") && name != null)
+            {
+                items.Add($"{name}: {s.Substring(6).Split("Ratio").First()}");
+            }
+        }
+        
+        if (items.Count <= 0)
+            items.Add("No downloads found");
+
+        await ReplyAsync(string.Join("\n", items), allowedMentions: AllowedMentions.None);
     }
 }
