@@ -26,7 +26,7 @@ public class CustomCommands : TextCommandBase, ICustomCommand
 
     [Command("add")]
     [Summary("Add a custom command")]
-    public Task Add(string command, string message) => me.AddCustomCommand(command, message);
+    public Task Add(string command, [Remainder] string message) => me.AddCustomCommand(command, message);
 
     [Command("remove")]
     [Alias("del")]
