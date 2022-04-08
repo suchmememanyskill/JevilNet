@@ -88,7 +88,7 @@ namespace JevilNet.Modules.TextCommands;
 
             if (emb.Fields.Length == 0)
             {
-                await ReplyAsync($"Sorry, I couldn't find anything for \"{query}\".");
+                await ReplyAsync($"Sorry, I couldn't find anything for \"{query}\".", allowedMentions: AllowedMentions.None);
                 return;
             }
 
