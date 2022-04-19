@@ -10,6 +10,7 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
 {
     public DiscordSocketClient Client { get; set; }
     public EmoteService Emote { get; set; }
+    public ArbitraryEditService Edit { get; set; }
 
     [SlashCommand("say", "Sends a message on the bots behalf")]
     public async Task Say(string message, ISocketMessageChannel channel = null)
@@ -35,6 +36,13 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
     {
         await Client.SetGameAsync(game);
         await RespondAsync((game == "") ? "Game unset" : "Game set", ephemeral: true);
+    }
+
+    [SlashCommand("edit", "Edits the last message in a channel")]
+    public async Task EditMessage(string newMessage)
+    {
+        await RespondAsync("Editing message..");
+        await Edit.Edit(Context.Channel as ITextChannel, newMessage);
     }
     
     [SlashCommand("emote", "Sends an emoji on the bots behalf")]

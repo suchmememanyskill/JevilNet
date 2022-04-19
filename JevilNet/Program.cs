@@ -116,6 +116,7 @@ class Program
             .AddSingleton<MenuService>()
             .AddSingleton<CustomCommandService>()
             .AddSingleton<ImageRequestService>()
+            .AddSingleton<ArbitraryEditService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
