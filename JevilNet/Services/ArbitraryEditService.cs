@@ -39,7 +39,7 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
             throw new Exception("No webhook set");
 
         await message.DeleteAsync();
-        await SendWebhook(serverStorage[channel.Id], user!.Nickname, user.GetAvatarUrl(),
+        await SendWebhook(serverStorage[channel.Id], user!.Nickname ?? user.Username, user.GetAvatarUrl(),
             newMessage);
     }
 
