@@ -41,7 +41,7 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("edit", "Edits the last message in a channel")]
     public async Task EditMessage(string newMessage)
     {
-        await RespondAsync("Editing message..");
+        await RespondAsync("Editing message..", ephemeral: true);
         await Edit.Edit(Context.Channel as ITextChannel, newMessage);
     }
     
