@@ -29,7 +29,10 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
         if (message == null)
             throw new Exception("This channel has no messages");
         
-        SocketGuildUser user = message.Author as SocketGuildUser;
+        SocketGuildUser? user = message.Author as SocketGuildUser;
+
+        if (user == null)
+            throw new Exception("Could not fetch user info");
 
         if (!storage.ContainsKey(channel.Guild.Id))
             throw new Exception("No webhook set");
