@@ -42,8 +42,15 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
     public async Task EditMessage(string newMessage)
     {
         await DeferAsync(true);
-        await Edit.Edit(Context.Channel as ITextChannel, newMessage);
-        await FollowupAsync("Edited message");
+        try
+        {
+            await Edit.Edit(Context.Channel as ITextChannel, newMessage);
+            await FollowupAsync("Edited message");
+        }
+        catch (Exception e)
+        {
+            await FollowupAsync(e.Message);
+        }
     }
     
     [SlashCommand("emote", "Sends an emoji on the bots behalf")]
