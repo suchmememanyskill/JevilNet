@@ -79,8 +79,12 @@ public class QuoteService : UserSpecificGuildStorage<ulong, string>
                 if (minutesSinceLastMessage > 60) // One hour
                 {
                     List<string> combinedQuotes = serverQuotes.GetCombinedStorage();
+
+                    double chance = (double)combinedQuotes.Count() / (50 + combinedQuotes.Count());
+                    if (chance > .5)
+                        chance = .5;
                     
-                    if (combinedQuotes.Count > 0 && Program.Random.Next(2) == 1)
+                    if (combinedQuotes.Count > 0 && Program.Random.NextDouble() <= chance)
                     {
                         string random = combinedQuotes[Program.Random.Next(combinedQuotes.Count)];
                         await textChannel.SendMessageAsync(random, allowedMentions: AllowedMentions.None);
