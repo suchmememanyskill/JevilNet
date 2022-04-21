@@ -44,7 +44,7 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
         await DeferAsync(true);
         try
         {
-            await Edit.Edit(Context.Channel as ITextChannel, newMessage);
+            await Edit.Edit(Context.Channel as ITextChannel, newMessage, edit);
             await FollowupAsync("Sent message");
         }
         catch (Exception e)
