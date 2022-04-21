@@ -39,12 +39,12 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("edit", "Imposes as or edits the last message in a channel")]
-    public async Task EditMessage(string newMessage, bool edit = false)
+    public async Task EditMessage(string newMessage, bool deleteOriginalMessage = false)
     {
         await DeferAsync(true);
         try
         {
-            await Edit.Edit(Context.Channel as ITextChannel, newMessage, edit);
+            await Edit.Edit(Context.Channel as ITextChannel, newMessage, deleteOriginalMessage);
             await FollowupAsync("Sent message");
         }
         catch (Exception e)
