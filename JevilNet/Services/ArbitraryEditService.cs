@@ -34,7 +34,7 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
         if (user == null)
             throw new Exception("Could not fetch user info");
 
-        if (user.IsWebhook)
+        if (user.IsWebhook || user.Discriminator == "0000")
             throw new Exception("Cannot edit a webhook");
 
         if (!storage.ContainsKey(channel.Guild.Id))
