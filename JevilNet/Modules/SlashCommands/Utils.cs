@@ -38,14 +38,14 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
         await RespondAsync((game == "") ? "Game unset" : "Game set", ephemeral: true);
     }
 
-    [SlashCommand("edit", "Edits the last message in a channel")]
-    public async Task EditMessage(string newMessage)
+    [SlashCommand("edit", "Imposes as or edits the last message in a channel")]
+    public async Task EditMessage(string newMessage, bool edit = false)
     {
         await DeferAsync(true);
         try
         {
             await Edit.Edit(Context.Channel as ITextChannel, newMessage);
-            await FollowupAsync("Edited message");
+            await FollowupAsync("Sent message");
         }
         catch (Exception e)
         {

@@ -7,13 +7,14 @@ namespace JevilNet.Modules.TextCommands;
 
 [RequireContext(ContextType.Guild)]
 [Group("edit")]
+[Alias("impose", "imposter")]
 public class ArbitraryEdit : TextCommandBase
 {
     public ArbitraryEditService Service { get; set; }
     private IBaseInterface me => this;
     
     [Command]
-    [Summary("Edits the last message sent in the channel")]
+    [Summary("Imposes the user from the last message sent in the channel")]
     public async Task ForceEdit([Remainder] string newMessage)
     {
         await Context.Message.DeleteAsync();

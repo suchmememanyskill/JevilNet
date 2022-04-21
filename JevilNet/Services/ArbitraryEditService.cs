@@ -22,7 +22,7 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
         await hook.SendMessageAsync(content, username: username, avatarUrl: avatarUrl, allowedMentions: AllowedMentions.None);
     }
 
-    public async Task Edit(ITextChannel channel, string newMessage)
+    public async Task Edit(ITextChannel channel, string newMessage, bool delete = false)
     {
         IMessage? message = await GetLastMessage(channel);
 
@@ -30,9 +30,12 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
             throw new Exception("This channel has no messages");
         
         SocketGuildUser? user = message.Author as SocketGuildUser;
-
+        
         if (user == null)
             throw new Exception("Could not fetch user info");
+
+        if (user.IsWebhook)
+            throw new Exception("Cannot edit a webhook");
 
         if (!storage.ContainsKey(channel.Guild.Id))
             throw new Exception("No webhook set");
@@ -41,7 +44,14 @@ public class ArbitraryEditService : BaseService<Dictionary<ulong, Dictionary<ulo
         if (!serverStorage.ContainsKey(channel.Id))
             throw new Exception("No webhook set");
 
-        await message.DeleteAsync();
+        if (delete)
+        {
+            if (!string.IsNullOrWhiteSpace(message.Content))
+                newMessage += $" ||(Original message) {message.Content}||";
+                    
+            await message.DeleteAsync();
+        }
+        
         await SendWebhook(serverStorage[channel.Id], user!.Nickname ?? user.Username, user.GetAvatarUrl(),
             newMessage);
     }
