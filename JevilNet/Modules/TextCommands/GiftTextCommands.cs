@@ -1,6 +1,7 @@
 ﻿
 using Discord;
 using Discord.Commands;
+using JevilNet.Extentions;
 using JevilNet.Modules.Base;
 using JevilNet.Services.Gift;
 
@@ -37,6 +38,34 @@ public class GiftTextCommands : TextCommandBase
         
         await Context.Message.DeleteAsync();
         await ReplyAsync("Added key");
+    }
+
+    [Command("mine")]
+    [Alias("me", "self", "own")]
+    public async Task GiftSelfGet()
+    {
+        var gifts = GiftService.GetAllGiftsOfUser(me.User().Id);
+        if (gifts.Count <= 0)
+        {
+            await ReplyAsync("You have no gifts");
+            return;
+        }
+
+        var channel = await me.User().CreateDMChannelAsync();
+
+        string buff = "";
+        foreach (var x in gifts.Select(x => $"{x.GameName} (Type: {x.Type}): `{x.GameKey}`"))
+        {
+            buff += x + "\n";
+            if (buff.Length >= 1800)
+            {
+                await channel.SendMessageAsync(buff);
+                buff = "";
+            }
+        }
+
+        await channel.SendMessageAsync(buff);
+        await me.React(Emoji.Parse(":+1:"));
     }
 
     [Command]

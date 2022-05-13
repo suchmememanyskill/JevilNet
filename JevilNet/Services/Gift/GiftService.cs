@@ -78,6 +78,21 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
         throw new Exception("Did not find server the gift is attached to");
     }
 
+    public List<GiftUserStorage> GetAllGiftsOfUser(ulong userId)
+    {
+        List<GiftUserStorage> gifts = new();
+        storage.ForEach(x => 
+            x.UserStorage.ForEach(y =>
+            {
+                if (y.UserId == userId)
+                {
+                    y.CustomStorage.ForEach(z => gifts.Add(z));
+                }
+            }));
+
+        return gifts;
+    }
+
     private List<GiftCarrier> GetCombinedGifts()
     {
         List<GiftCarrier> gifts = new();
