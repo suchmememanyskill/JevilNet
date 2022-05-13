@@ -18,12 +18,13 @@ public class GiftTextCommands : TextCommandBase
     [Command("add")]
     public async Task GiftAdd(GiftType type, string gameName, [Remainder] string key)
     {
+        await Context.Message.DeleteAsync();
+        
         if (type == GiftType.Steam)
             await GiftService.AddSteamKey(me.Guild().Id, me.User().Id, me.User().Username, gameName, key);
         else
             await GiftService.AddCustomKey(me.Guild().Id, me.User().Id, me.User().Username, gameName, key);
-
-        await Context.Message.DeleteAsync();
+        
         await ReplyAsync("Added key");
     }
 
@@ -31,12 +32,13 @@ public class GiftTextCommands : TextCommandBase
     [Priority(1)]
     public async Task GiftAdd(GiftType type, long appId, [Remainder] string key)
     {
+        await Context.Message.DeleteAsync();
+        
         if (type == GiftType.Steam)
             await GiftService.AddSteamKey(me.Guild().Id, me.User().Id, me.User().Username, appId, key);
         else
             throw new Exception("Custom keys cannot be set using an id");
         
-        await Context.Message.DeleteAsync();
         await ReplyAsync("Added key");
     }
 
