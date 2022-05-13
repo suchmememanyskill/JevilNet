@@ -10,6 +10,7 @@ using Discord.Commands;
 using JevilNet.Extentions;
 using JevilNet.Services;
 using JevilNet.Services.CustomCommand;
+using JevilNet.Services.Gift;
 using JevilNet.Services.ImageRequest;
 using JevilNet.Services.Quote;
 using JevilNet.Services.Roles;
@@ -117,6 +118,7 @@ class Program
             .AddSingleton<CustomCommandService>()
             .AddSingleton<ImageRequestService>()
             .AddSingleton<ArbitraryEditService>()
+            .AddSingleton<GiftService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
