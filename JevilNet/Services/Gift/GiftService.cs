@@ -8,7 +8,7 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
 {
     public override string StoragePath() => "./Storage/gifts.json";
     private DiscordSocketClient client;
-    private List<SteamApp> steamApps;
+    public List<SteamApp> SteamApps { get; private set; }
     public List<GiftCarrier> cachedGifts { get; private set; }
 
     public GiftService(DiscordSocketClient client)
@@ -21,7 +21,7 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
 
     public async Task AddSteamKey(ulong serverId, ulong userId, string username, long steamId, string key)
     {
-        SteamApp? app = steamApps.Find(x => x.AppId == steamId);
+        SteamApp? app = SteamApps.Find(x => x.AppId == steamId);
 
         if (app == null)
             throw new Exception("Steam game not found");
@@ -48,7 +48,7 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
     
     public async Task AddSteamKey(ulong serverId, ulong userId, string username, string steamGameName, string key)
     {
-        SteamApp? app = steamApps.Find(x => String.Equals(x.Name, steamGameName, StringComparison.CurrentCultureIgnoreCase));
+        SteamApp? app = SteamApps.Find(x => String.Equals(x.Name, steamGameName, StringComparison.CurrentCultureIgnoreCase));
         
         if (app == null)
             throw new Exception("Steam game not found");
@@ -129,8 +129,8 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
             var result = client.GetAsync(new Uri("https://api.steampowered.com/ISteamApps/GetAppList/v2/")).GetAwaiter().GetResult();
             string textResponse = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             SteamGames games = JsonConvert.DeserializeObject<SteamGames>(textResponse);
-            steamApps = games.AppList.Apps;
-            Console.WriteLine($"Loaded {steamApps.Count} steam games");
+            SteamApps = games.AppList.Apps;
+            Console.WriteLine($"Loaded {SteamApps.Count} steam games");
         }
     }
 }
