@@ -26,8 +26,8 @@ public class GiftInteraction : SlashCommandBase
         else await RespondAsync(text, embed: embed, components: components, ephemeral:true);
     }
     
-    [ComponentInteraction("giftmenu")]
-    public async Task GiftMenu(params string[] selections)
+    [ComponentInteraction("giftmenu:*")]
+    public async Task GiftMenu(string _, params string[] selections)
     {
         string selection = selections.First();
         long gameId = long.Parse(selection);
@@ -39,8 +39,7 @@ public class GiftInteraction : SlashCommandBase
         var componentBuilder = new ComponentBuilder();
         
         carrier.Users.ForEach(x => componentBuilder.WithButton($"Ask {x.UserName}", $"giftget:{selection}:{x.UserId.ToString()}"));
-
-
+        
         string gameCount = (carrier.Gifts.Count > 1) ? $"are {carrier.Gifts.Count} copies" : "is 1 copy";
         string text = $"There {gameCount} of the game {carrier.GameName} available.";
         if (carrier.GiftType == GiftType.Steam)

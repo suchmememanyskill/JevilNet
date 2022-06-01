@@ -70,25 +70,40 @@ public class GiftTextCommands : TextCommandBase
         await me.React(Emoji.Parse(":+1:"));
     }
 
+    private static int SPLIT_AMOUNT = 25;
+    
     [Command]
     public async Task ShowGifts()
     {
-        var selectMenuBuilder = new SelectMenuBuilder()
-            .WithCustomId("giftmenu")
-            .WithMinValues(1)
-            .WithMaxValues(1);
-
         if (GiftService.cachedGifts.Count <= 0)
         {
             await ReplyAsync("No gifts are available");
             return;
         }
-        
-        GiftService.cachedGifts.ForEach(x => selectMenuBuilder.AddOption(x.GameName, x.GameId.ToString(), $"{x.Gifts.Count} gift(s) available (Platform: {x.GiftType})"));
-        
-        var componentBuilder = new ComponentBuilder()
-            .WithSelectMenu(selectMenuBuilder);
 
+        SelectMenuBuilder? selectMenuBuilder = null;
+        var componentBuilder = new ComponentBuilder();
+        
+        for (int i = 0; i < GiftService.cachedGifts.Count; i++)
+        {
+            GiftCarrier gift = GiftService.cachedGifts[i];
+
+            if (i % SPLIT_AMOUNT == 0)
+            {
+                if (selectMenuBuilder != null)
+                    componentBuilder.WithSelectMenu(selectMenuBuilder);
+                
+                selectMenuBuilder = new SelectMenuBuilder()
+                    .WithCustomId($"giftmenu:{i}")
+                    .WithMaxValues(1)
+                    .WithMaxValues(1);
+            }
+
+            selectMenuBuilder!.AddOption(gift.GameName, gift.GameId.ToString(),
+                $"{gift.Gifts.Count} gift(s) available (Platform: {gift.GiftType})");
+        }
+        
+        componentBuilder.WithSelectMenu(selectMenuBuilder);
         await ReplyAsync("Available gifts:", components: componentBuilder.Build());
     }
 }
