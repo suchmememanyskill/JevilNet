@@ -77,10 +77,10 @@ public class GiftInteraction : SlashCommandBase
             .WithButton("No", $"giftdeny:{Context.User.Id}");
 
         await channel.SendMessageAsync(
-            $"{Context.User.Mention} wants to have the game {gift.GameName}. Do you want to gift this game?",
+            $"{Context.User.Mention} ({Context.User.Username}#{Context.User.Discriminator}) wants to have the game {gift.GameName}. Do you want to gift this game?",
             components: componentBuilder.Build());
         
-        await RespondEphemeral($"Asked {discordUser.Mention} for the game {gift.GameName}");
+        await RespondEphemeral($"Asked {discordUser.Mention} ({discordUser.Username}#{discordUser.Discriminator}) for the game {gift.GameName}. Please have your DM's open with the bot to be able to receive a response");
     }
 
     [ComponentInteraction("giftdeny:*")]
@@ -89,7 +89,7 @@ public class GiftInteraction : SlashCommandBase
         ulong userId = ulong.Parse(userIdStr);
         IUser discordUser = await Context.Client.GetUserAsync(userId);
         var channel = await discordUser.CreateDMChannelAsync();
-        await channel.SendMessageAsync($"{Context.User.Mention} has denied your gift");
+        await channel.SendMessageAsync($"{Context.User.Mention} ({Context.User.Username}#{Context.User.Discriminator}) has denied your gift");
         await RespondEphemeral($"Denied gift");
     }
 
@@ -108,8 +108,8 @@ public class GiftInteraction : SlashCommandBase
         
         IUser discordUser = await Context.Client.GetUserAsync(userId);
         var channel = await discordUser.CreateDMChannelAsync();
-        await channel.SendMessageAsync($"Key of {carrier.GameName}, gifted by {Context.User.Mention}: {gift.GameKey}");
+        await channel.SendMessageAsync($"Key of {carrier.GameName}, gifted by {Context.User.Mention} ({Context.User.Username}#{Context.User.Discriminator}): {gift.GameKey}");
         await GiftService.RemoveKey(gift);
-        await RespondEphemeral($"Accepted gift of {carrier.GameName} to {discordUser.Mention}. Thanks!");
+        await RespondEphemeral($"Accepted gift of {carrier.GameName} to {discordUser.Mention} ({discordUser.Username}#{discordUser.Discriminator}). Thanks!");
     }
 }
