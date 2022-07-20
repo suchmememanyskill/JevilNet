@@ -77,7 +77,7 @@ public class GiftInteraction : SlashCommandBase
             .WithButton("No", $"giftdeny:{Context.User.Id}");
 
         await channel.SendMessageAsync(
-            $"{Context.User.Mention} ({Context.User.Username}#{Context.User.Discriminator}) wants to have the game {gift.GameName}. Do you want to gift this game?",
+            $"{Context.User.Mention} ({Context.User.Username}#{Context.User.Discriminator} from server {Context.Guild.Name}) wants to have the game {gift.GameName}. Do you want to gift this game?",
             components: componentBuilder.Build());
         
         await RespondEphemeral($"Asked {discordUser.Mention} ({discordUser.Username}#{discordUser.Discriminator}) for the game {gift.GameName}. Please have your DM's open with the bot to be able to receive a response");
