@@ -120,10 +120,10 @@ public class Utils : ModuleBase<SocketCommandContext>
 
     private static readonly Dictionary<string, string> validDelugeLocations = new Dictionary<string, string>()
     {
-        {"movies", "/media/SyncUsb/Jellyfin/Movies"},
-        {"music", "/media/SyncUsb/Jellyfin/Music"},
-        {"shows", "/media/SyncUsb/Jellyfin/Shows"},
-        {"other", "/media/SyncUsb/Jellyfin/other"},
+        {"movies", "/home/pi/apps/Jellyfin/Movies"},
+        {"music",  "/home/pi/apps/Jellyfin/Music"},
+        {"shows",  "/home/pi/apps/Jellyfin/Shows"},
+        {"other",  "/home/pi/apps/Jellyfin/Other"},
     };
     
     [Command("delugestart")]
