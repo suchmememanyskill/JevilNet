@@ -120,10 +120,10 @@ public class Utils : ModuleBase<SocketCommandContext>
 
     private static readonly Dictionary<string, string> validDelugeLocations = new Dictionary<string, string>()
     {
-        {"movies", "/home/pi/apps/Jellyfin/Movies"},
-        {"music",  "/home/pi/apps/Jellyfin/Music"},
-        {"shows",  "/home/pi/apps/Jellyfin/Shows"},
-        {"other",  "/home/pi/apps/Jellyfin/Other"},
+        {"movies", "/media/external_storage/jellyfin/Movies"},
+        {"music",  "/media/external_storage/jellyfin/Music"},
+        {"shows",  "/media/external_storage/jellyfin/Shows"},
+        //{"other",  "/media/external_storage/jellyfin/Other"},
     };
     
     [Command("delugestart")]
@@ -198,5 +198,28 @@ public class Utils : ModuleBase<SocketCommandContext>
             items.Add("No downloads found");
 
         await ReplyAsync(string.Join("\n", items), allowedMentions: AllowedMentions.None);
+    }
+
+    [Command("dndcalc")]
+    [Summary("Calculate stats for a dnd encounter")]
+    public async Task GenDndEncounter(int amount, int dice_count, int dice_value, int additional_hp, int initiative_bonus)
+    {
+        Random r = new();
+
+        List<Tuple<int, int>> gens = new();
+
+        for (int i = 0; i < amount; i++)
+        {
+            int x = 0;
+            for (int j = 0; j < dice_count; j++)
+                x += r.Next(1, dice_value + 1);
+
+            x += additional_hp;
+
+            int init = r.Next(1, 21) + initiative_bonus;
+            gens.Add(new(x, init));
+        }
+
+        await ReplyAsync(string.Join("\n", gens.OrderByDescending(x => x.Item2).Select((x, i) => $"#{i + 1}: {x.Item1} HP, {x.Item2} Initiative")));
     }
 }
