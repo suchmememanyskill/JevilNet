@@ -48,23 +48,56 @@ public class GiftSlashCommands : SlashCommandBase
 
         await DeferAsync(true);
 
-        var channel = await me.User().CreateDMChannelAsync();
-
         string buff = "";
         foreach (var x in gifts.Select(x => $"{x.GameName} (Type: {x.Type}): `{x.GameKey}`"))
         {
             buff += x + "\n";
             if (buff.Length >= 1800)
             {
-                await channel.SendMessageAsync(buff);
+                await FollowupAsync(buff, ephemeral: true);
                 buff = "";
             }
         }
 
-        await channel.SendMessageAsync(buff);
-        await FollowupAsync("Dm'd you all your saved keys", ephemeral: true);
-        await FollowupAsync("Dm'd you all your saved keys", ephemeral: true);
+        await FollowupAsync(buff, ephemeral: true);
     }
+
+    private static int SPLIT_AMOUNT = 25;
+    [SlashCommand("list", "Lists all available gifts")]
+    public async Task GiftList()
+    {
+        if (GiftService.cachedGifts.Count <= 0)
+        {
+            await me.RespondEphermeral("No gifts are available");
+            return;
+        }
+
+        SelectMenuBuilder? selectMenuBuilder = null;
+        var componentBuilder = new ComponentBuilder();
+        
+        for (int i = 0; i < GiftService.cachedGifts.Count; i++)
+        {
+            GiftCarrier gift = GiftService.cachedGifts[i];
+
+            if (i % SPLIT_AMOUNT == 0)
+            {
+                if (selectMenuBuilder != null)
+                    componentBuilder.WithSelectMenu(selectMenuBuilder);
+                
+                selectMenuBuilder = new SelectMenuBuilder()
+                    .WithCustomId($"giftmenu:{i}")
+                    .WithMaxValues(1)
+                    .WithMaxValues(1);
+            }
+
+            selectMenuBuilder!.AddOption(gift.GameName, gift.GameId.ToString(),
+                $"{gift.Gifts.Count} gift(s) available (Platform: {gift.GiftType})");
+        }
+        
+        componentBuilder.WithSelectMenu(selectMenuBuilder);
+        await me.RespondEphermeral("Available gifts:", components: componentBuilder.Build());
+    }
+    
     
     public class GameAddAutocompleteHandler : AutocompleteHandler
     {
