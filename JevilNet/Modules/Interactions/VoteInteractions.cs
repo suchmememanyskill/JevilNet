@@ -46,7 +46,7 @@ public class VoteInteractions : InteractionModuleBase<SocketInteractionContext>
         
         if (options.Count < 1)
         {
-            await RespondAsync("Invalid options");
+            await RespondAsync("Invalid options", ephemeral: true);
             return;
         }
             
