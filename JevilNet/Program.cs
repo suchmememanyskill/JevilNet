@@ -119,6 +119,7 @@ class Program
             .AddSingleton<ImageRequestService>()
             .AddSingleton<ArbitraryEditService>()
             .AddSingleton<GiftService>()
+            .AddSingleton<McServerService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
