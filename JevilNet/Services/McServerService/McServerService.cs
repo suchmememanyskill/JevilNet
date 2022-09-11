@@ -91,22 +91,26 @@ public class McServerService
 
     private async void SetMcStatus(object? obj)
     {
-        var status = await GetConfig();
-
-        if (status.TextStatus == "Ready")
+        try
         {
-            string map = (status.Map == null || (!status.Version?.UsesMaps ?? false))
-                ? ""
-                : $" on Map {status.Map.Name} ";
+            var status = await GetConfig();
 
-            string version = (status.Version == null) ? "" : $" on Version {status.Version.Version}";
-            
-            await _client.SetGameAsync($"MC: {status.OnlinePlayers.Count} playing{map}{version}");
+            if (status.TextStatus == "Ready")
+            {
+                string map = (status.Map == null || (!status.Version?.UsesMaps ?? false))
+                    ? ""
+                    : $" on Map {status.Map.Name} ";
+
+                string version = (status.Version == null) ? "" : $" on Version {status.Version.Version}";
+
+                await _client.SetGameAsync($"MC: {status.OnlinePlayers.Count} playing{map}{version}");
+            }
+            else
+            {
+                if (_client.Activity is { Type: ActivityType.Playing } && _client.Activity.Name.StartsWith("MC:"))
+                    await _client.SetGameAsync("");
+            }
         }
-        else
-        {
-            if (_client.Activity is { Type: ActivityType.Playing } && _client.Activity.Name.StartsWith("MC:"))
-                await _client.SetGameAsync("");
-        }
+        catch { }
     }
 }

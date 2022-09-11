@@ -16,13 +16,13 @@ public class McServerSlashCommands : SlashCommandBase
     private IBaseInterface me => this;
 
     [SlashCommand("status", "Get the current status of the minecraft server")]
-    public async Task Status()
+    public async Task Status(bool sendInChannel = false)
     {
         var config = await McServerService.GetConfig();
         string mapName = (config.Map == null) 
             ? "No map has been selected" 
             : (config.Version?.UsesMaps ?? true) 
-                ? $"Map Name{(((config.Map?.ReadOnly ?? false) && (config.Version?.UsesMaps ?? true)) ? " (READ-ONLY!)" : "")}: {config.Map?.Name ?? "(???)"}" 
+                ? $"Map{(((config.Map?.ReadOnly ?? false) && (config.Version?.UsesMaps ?? true)) ? " (read-only)" : "")}: {config.Map?.Name ?? "(???)"}" 
                 : "This minecraft version does not support custom maps";
         string serverVersion = $"Minecraft Version: {config.Version?.Version ?? "(???)"}";
         string playersOnline = (config.OnlinePlayers.Count <= 0)
@@ -64,8 +64,11 @@ public class McServerSlashCommands : SlashCommandBase
         else
             builder.WithColor(0, 255, 0);
         builder.WithDescription(message);
-        
-        await me.RespondEphermeral(embed: builder.Build());
+
+        if (sendInChannel)
+            await me.Respond(embed: builder.Build());
+        else
+            await me.RespondEphermeral(embed: builder.Build());
     }
 
     [SlashCommand("reload", "Reload maps and versions")]
@@ -103,10 +106,24 @@ public class McServerSlashCommands : SlashCommandBase
     }
 
     [SlashCommand("on", "Turn the minecraft server on")]
-    public async Task SetStateOn()
+    public async Task SetStateOn([Autocomplete(typeof(McMapSuggestions))] string? map = null)
     {
+        string message = "Turned server on";
+        if (map != null)
+        {
+            MapsGet set = await McServerService.SetMap(map);
+            
+            message += $"\n\nSet minecraft map to {map}";
+            
+            if (set.MinecraftVersion != "unk")
+                message += $"\nThe minecraft version has also been set to {set.MinecraftVersion}";
+
+            if (set.ReadOnly)
+                message += "\nMap is ready only. Any changes made to the map will be lost after a reboot";
+        }
+        
         await McServerService.SetState(true);
-        await me.RespondEphermeral($"Turned server on");
+        await me.RespondEphermeral(message.Trim());
     }
     
     [SlashCommand("off", "Turn the minecraft server off")]
