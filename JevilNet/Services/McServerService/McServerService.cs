@@ -55,4 +55,12 @@ public class McServerService
         await MapsPost.Post(map);
         return Maps.Find(x => x.Name == map)!;
     }
+
+    public async Task CreateMap(string name, string version)
+    {
+        if (Versions.All(x => x.Version != version))
+            throw new Exception("Version does not exist on server");
+
+        await MapsNewPost.Post(name, version);
+    }
 }

@@ -91,7 +91,15 @@ public class McServerSlashCommands : SlashCommandBase
         await McServerService.SetState(false);
         await me.RespondEphermeral($"Turned server off");
     }
-    
+
+    [SlashCommand("new", "Create a new map. Think before you type, there's no way to delete this")]
+    public async Task CreateNewMap(string name, [Autocomplete(typeof(McVersionSuggestions))] string version)
+    {
+        await McServerService.CreateMap(name, version);
+        await McServerService.Reload();
+        await me.RespondEphermeral($"Created new map");
+    }
+
     public class McMapSuggestions : AutocompleteHandler
     {
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
