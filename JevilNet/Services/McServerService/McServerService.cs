@@ -19,23 +19,23 @@ public class McServerService
         Maps = await MapsGet.Get();
     }
 
-    public async Task<ConfigGet> GetConfig() => await ConfigGet.Get();
+    public async Task<StatusGet> GetConfig() => await StatusGet.Get();
 
     public async Task SetState(bool state)
     {
-        ConfigGet config = await GetConfig();
+        StatusGet status = await GetConfig();
         if (state)
         {
-            if (!(config.TextStatus is "Stopped" or "Dead"))
+            if (!(status.TextStatus is "Stopped" or "Dead"))
                 throw new Exception("Minecraft server is already running!");
         }
         else
         {
-            if (config.TextStatus != "Ready")
+            if (status.TextStatus != "Ready")
                 throw new Exception("Minecraft server is not ready yet, or not running");
         }
 
-        await ConfigPost.Post(state);
+        await StatusPost.Post(state);
     }
 
     public async Task<VersionsGet> SetVersion(string version)

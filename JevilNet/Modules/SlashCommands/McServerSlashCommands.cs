@@ -20,6 +20,9 @@ public class McServerSlashCommands : SlashCommandBase
         var config = await McServerService.GetConfig();
         string mapName = (config.MapName == "") ? "No map has been selected" : ((McServerService.Versions.Find(x => x.Version == config.ServerVersion)?.UsesMaps ?? true) ? $"Map Name: {config.MapName}" : "This minecraft version does not support custom maps");
         string serverVersion = $"Minecraft Version: {config.ServerVersion}";
+        string playersOnline = (config.OnlinePlayers.Count <= 0)
+            ? "There are no players online"
+            : $"There are {config.OnlinePlayers.Count} player(s) online: {string.Join(", ", config.OnlinePlayers)}";
         string message = "";
 
         switch (config.TextStatus)
@@ -34,7 +37,7 @@ public class McServerSlashCommands : SlashCommandBase
                 message = "Server has been started, waiting until ready";
                 break;
             case "Ready":
-                message = $"Server is ready. Connect at ip `152.70.57.126`\n\n{mapName}\n{serverVersion}";
+                message = $"Server is ready. Connect at ip `152.70.57.126`\n\n{mapName}\n{serverVersion}\n{playersOnline}";
                 break;
             case "Stopping":
                 message = "Server is stopping";
