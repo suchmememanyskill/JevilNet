@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using JevilNet.Services.Model;
 
 namespace JevilNet.Services;
@@ -7,10 +8,14 @@ public class McServerService
 {
     public List<VersionsGet> Versions { get; set; } = new();
     public List<MapsGet> Maps { get; set; } = new();
+    private DiscordSocketClient _client;
+    private Timer _timer;
 
     public McServerService(DiscordSocketClient client)
     {
+        _client = client;
         client.Ready += Reload;
+        _timer = new(SetMcStatus, null, 60 * 1000, 5 * 60 * 1000);
     }
 
     public async Task Reload()
@@ -42,7 +47,11 @@ public class McServerService
     {
         if (Versions.All(x => x.Version != version))
             throw new Exception("Version does not exist on server");
-
+        
+        var status = await GetConfig();
+        if (!status.IsOffline)
+            throw new Exception("Server needs to be offline to set a new version");
+                
         await VersionsPost.Post(version);
         return Versions.Find(x => x.Version == version)!;
     }
@@ -52,6 +61,10 @@ public class McServerService
         if (Maps.All(x => x.Name != map))
             throw new Exception("Map does not exist on server");
 
+        var status = await GetConfig();
+        if (!status.IsOffline)
+            throw new Exception("Server needs to be offline to set a new map");
+        
         await MapsPost.Post(map);
         return Maps.Find(x => x.Name == map)!;
     }
@@ -74,5 +87,26 @@ public class McServerService
         var response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
         await MapsUploadPost.Post(mapName, mcVersion, await response.Content.ReadAsStreamAsync(), readOnly);
+    }
+
+    private async void SetMcStatus(object? obj)
+    {
+        var status = await GetConfig();
+
+        if (status.TextStatus == "Ready")
+        {
+            string map = (status.Map == null || (!status.Version?.UsesMaps ?? false))
+                ? ""
+                : $" on Map {status.Map.Name} ";
+
+            string version = (status.Version == null) ? "" : $" on Version {status.Version.Version}";
+            
+            await _client.SetGameAsync($"MC: {status.OnlinePlayers.Count} playing{map}{version}");
+        }
+        else
+        {
+            if (_client.Activity is { Type: ActivityType.Playing } && _client.Activity.Name.StartsWith("MC:"))
+                await _client.SetGameAsync("");
+        }
     }
 }
