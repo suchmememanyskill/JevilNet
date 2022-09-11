@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace JevilNet.Services.Model;
@@ -20,6 +21,16 @@ public static class Utils
         using var httpClient = new HttpClient();
         // Please don't steal this url. I pay for this and am too lazy to add auth
         var response = await httpClient.PostAsync($"http://152.70.57.126:4624/{endPoint}", new StringContent(strData, Encoding.Default, "application/json"));
+        response.EnsureSuccessStatusCode();
+    }
+    
+    public async static Task PostFile(string endPoint, Stream data)
+    {
+        using var httpClient = new HttpClient();
+        // Please don't steal this url. I pay for this and am too lazy to add auth
+        using var formData = new MultipartFormDataContent();
+        formData.Add(new StreamContent(data), "file", "world.zip");
+        var response = await httpClient.PostAsync($"http://152.70.57.126:4624/{endPoint}", formData);
         response.EnsureSuccessStatusCode();
     }
 }

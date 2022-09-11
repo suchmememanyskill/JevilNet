@@ -63,4 +63,16 @@ public class McServerService
 
         await MapsNewPost.Post(name, version);
     }
+
+    public async Task UploadMap(string mapName, string mcVersion, string url, bool readOnly = false)
+    {
+        if (!url.EndsWith(".zip"))
+            throw new Exception("File does not end with .zip");
+        
+        using var httpClient = new HttpClient();
+        // Please don't steal this url. I pay for this and am too lazy to add auth
+        var response = await httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        await MapsUploadPost.Post(mapName, mcVersion, await response.Content.ReadAsStreamAsync(), readOnly);
+    }
 }

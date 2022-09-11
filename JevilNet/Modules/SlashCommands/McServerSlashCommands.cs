@@ -112,11 +112,18 @@ public class McServerSlashCommands : SlashCommandBase
         await me.RespondEphermeral($"Created new map");
     }
 
+    [SlashCommand("upload", "Upload a map to the server. Needs to be a .zip file containing a 'world' folder")]
+    public async Task UploadMap(string name, [Autocomplete(typeof(McVersionSuggestions))] string version,
+        IAttachment attachment, bool readOnly = false)
+    {
+        await McServerService.UploadMap(name, version, attachment.Url, readOnly);
+    }
+
     public class McMapSuggestions : AutocompleteHandler
     {
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
             IParameterInfo parameter, IServiceProvider services)
-        {
+        { 
             McServerService service = services.GetRequiredService<McServerService>();
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
