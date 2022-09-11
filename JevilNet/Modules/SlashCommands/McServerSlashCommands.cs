@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Web;
+using Discord;
 using Discord.Interactions;
 using JevilNet.Modules.Base;
 using JevilNet.Services;
@@ -53,7 +54,18 @@ public class McServerSlashCommands : SlashCommandBase
 
         message += $"\n\n{mapName}\n{serverVersion}\n{playersOnline}";
 
-        await me.RespondEphermeral(message.Trim());
+        if (config.Map?.HasResourcePack ?? false)
+            message += $"\n[This map has a resource pack available](http://152.70.57.126:4624/Maps/resources/{HttpUtility.UrlEncode(config.Map.Name)})";
+
+        EmbedBuilder builder = new();
+        builder.WithTitle("JevilServer");
+        if (config.IsOffline)
+            builder.WithColor(255, 0, 0);
+        else
+            builder.WithColor(0, 255, 0);
+        builder.WithDescription(message);
+        
+        await me.RespondEphermeral(embed: builder.Build());
     }
 
     [SlashCommand("reload", "Reload maps and versions")]
