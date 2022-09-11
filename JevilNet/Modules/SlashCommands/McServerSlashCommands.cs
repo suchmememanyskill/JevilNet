@@ -116,7 +116,17 @@ public class McServerSlashCommands : SlashCommandBase
     public async Task UploadMap(string name, [Autocomplete(typeof(McVersionSuggestions))] string version,
         IAttachment attachment, bool readOnly = false)
     {
-        await McServerService.UploadMap(name, version, attachment.Url, readOnly);
+        await DeferAsync(true);
+        try
+        {
+            await McServerService.UploadMap(name, version, attachment.Url, readOnly);
+            await McServerService.Reload();
+            await FollowupAsync("Upload complete!", ephemeral: true);
+        }
+        catch (Exception e)
+        {
+            await FollowupAsync(e.Message, ephemeral: true);
+        }
     }
 
     public class McMapSuggestions : AutocompleteHandler
