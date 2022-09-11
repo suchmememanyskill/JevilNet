@@ -21,7 +21,11 @@ public static class Utils
         using var httpClient = new HttpClient();
         // Please don't steal this url. I pay for this and am too lazy to add auth
         var response = await httpClient.PostAsync($"http://152.70.57.126:4624/{endPoint}", new StringContent(strData, Encoding.Default, "application/json"));
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(await response.Content.ReadAsStringAsync());
+        }
     }
     
     public async static Task PostFile(string endPoint, Stream data)
@@ -31,6 +35,10 @@ public static class Utils
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(data), "file", "world.zip");
         var response = await httpClient.PostAsync($"http://152.70.57.126:4624/{endPoint}", formData);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(await response.Content.ReadAsStringAsync());
+        }
     }
 }
