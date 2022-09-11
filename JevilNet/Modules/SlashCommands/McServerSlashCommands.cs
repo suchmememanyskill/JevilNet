@@ -18,8 +18,12 @@ public class McServerSlashCommands : SlashCommandBase
     public async Task Status()
     {
         var config = await McServerService.GetConfig();
-        string mapName = (config.MapName == "") ? "No map has been selected" : ((McServerService.Versions.Find(x => x.Version == config.ServerVersion)?.UsesMaps ?? true) ? $"Map Name: {config.MapName}" : "This minecraft version does not support custom maps");
-        string serverVersion = $"Minecraft Version: {config.ServerVersion}";
+        string mapName = (config.Map == null) 
+            ? "No map has been selected" 
+            : (config.Version?.UsesMaps ?? true) 
+                ? $"Map Name{(((config.Map?.ReadOnly ?? false) && (config.Version?.UsesMaps ?? true)) ? " (READ-ONLY!)" : "")}: {config.Map?.Name ?? "(???)"}" 
+                : "This minecraft version does not support custom maps";
+        string serverVersion = $"Minecraft Version: {config.Version?.Version ?? "(???)"}";
         string playersOnline = (config.OnlinePlayers.Count <= 0)
             ? "There are no players online"
             : $"There are {config.OnlinePlayers.Count} player(s) online: {string.Join(", ", config.OnlinePlayers)}";
@@ -28,7 +32,7 @@ public class McServerSlashCommands : SlashCommandBase
         switch (config.TextStatus)
         {
             case "Stopped":
-                message = $"Server is stopped\n\n{mapName}\n{serverVersion}";
+                message = $"Server is stopped";
                 break;
             case "Initialising":
                 message = "Server is being created";
@@ -37,17 +41,19 @@ public class McServerSlashCommands : SlashCommandBase
                 message = "Server has been started, waiting until ready";
                 break;
             case "Ready":
-                message = $"Server is ready. Connect at ip `152.70.57.126`\n\n{mapName}\n{serverVersion}\n{playersOnline}";
+                message = $"Server is ready. Connect at ip `152.70.57.126`";
                 break;
             case "Stopping":
                 message = "Server is stopping";
                 break;
             case "Dead":
-                message = $"Server has crashed!\n\n{mapName}\n{serverVersion}";
+                message = $"Server has crashed!";
                 break;
         }
 
-        await me.RespondEphermeral(message);
+        message += $"\n\n{mapName}\n{serverVersion}\n{playersOnline}";
+
+        await me.RespondEphermeral(message.Trim());
     }
 
     [SlashCommand("reload", "Reload maps and versions")]
@@ -77,8 +83,11 @@ public class McServerSlashCommands : SlashCommandBase
         string append = "";
         if (set.MinecraftVersion != "unk")
             append = $"The minecraft version has also been set to {set.MinecraftVersion}";
+
+        if (set.ReadOnly)
+            append += "\nMap is ready only. Any changes made to the map will be lost after a reboot";
             
-        await me.RespondEphermeral($"Set minecraft map to {map}\n{append}");
+        await me.RespondEphermeral($"Set minecraft map to {map}\n{append.Trim()}");
     }
 
     [SlashCommand("on", "Turn the minecraft server on")]

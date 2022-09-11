@@ -2,8 +2,8 @@
 
 public class StatusGet
 {
-    public string MapName { get; set; } = "";
-    public string ServerVersion { get; set; } = "";
+    public MapsGet? Map { get; set; }
+    public VersionsGet? Version { get; set; }
     public string TextStatus { get; set; } = "";
     public List<string> OnlinePlayers { get; set; } = new();
 
