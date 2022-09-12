@@ -18,7 +18,7 @@ public class McServerSlashCommands : SlashCommandBase
     [SlashCommand("status", "Get the current status of the minecraft server")]
     public async Task Status(bool sendInChannel = false)
     {
-        var config = await McServerService.GetConfig();
+        var config = await McServerService.GetStatus();
         string mapName = (config.Map == null) 
             ? "No map has been selected" 
             : (config.Version?.UsesMaps ?? true) 
@@ -78,8 +78,8 @@ public class McServerSlashCommands : SlashCommandBase
         await me.RespondEphermeral("Reload complete!");
     }
 
-    [SlashCommand("version", "Set the server version")]
-    public async Task SetVersion([Autocomplete(typeof(McVersionSuggestions))] string version)
+    [SlashCommand("custom_version", "Set the server version")]
+    public async Task SetVersion([Autocomplete(typeof(McCustomVersionSuggestions))] string version)
     {
         VersionsGet set = await McServerService.SetVersion(version);
 
@@ -137,7 +137,6 @@ public class McServerSlashCommands : SlashCommandBase
     public async Task CreateNewMap(string name, [Autocomplete(typeof(McVersionSuggestions))] string version)
     {
         await McServerService.CreateMap(name, version);
-        await McServerService.Reload();
         await me.RespondEphermeral($"Created new map");
     }
 
@@ -149,13 +148,26 @@ public class McServerSlashCommands : SlashCommandBase
         try
         {
             await McServerService.UploadMap(name, version, attachment.Url, readOnly);
-            await McServerService.Reload();
             await FollowupAsync("Upload complete!", ephemeral: true);
         }
         catch (Exception e)
         {
             await FollowupAsync(e.Message, ephemeral: true);
         }
+    }
+
+    [SlashCommand("map_version", "Change a map's version. Be careful with downgrading")]
+    public async Task ChangeMapVersion([Autocomplete(typeof(McMapSuggestions))] string name, [Autocomplete(typeof(McVersionSuggestions))] string version)
+    {
+        var res = await McServerService.ChangeMapVersion(name, version);
+        await me.RespondEphermeral($"Changed Map {res.Map.Name} from Version {res.OldVersion.Version} to Version {res.NewVersion.Version}");
+    }
+
+    [SlashCommand("delete", "Owner only. Deletes a map from the server")]
+    public async Task DeleteMap([Autocomplete(typeof(McMapSuggestions))] string name)
+    {
+        await McServerService.DeleteMap(name);
+        await me.RespondEphermeral("Deleted map");
     }
 
     public class McMapSuggestions : AutocompleteHandler
@@ -171,6 +183,7 @@ public class McServerSlashCommands : SlashCommandBase
         }
     }
     
+    
     public class McVersionSuggestions : AutocompleteHandler
     {
         public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
@@ -180,7 +193,20 @@ public class McServerSlashCommands : SlashCommandBase
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
             
-            return AutocompletionResult.FromSuccess(service.Versions.Where(x => x.Version.ToLower().Contains(search)).Select(x => new AutocompleteResult(x.Version, x.Version)).ToList());
+            return AutocompletionResult.FromSuccess(service.Versions.Where(x => x.UsesMaps).Where(x => x.Version.ToLower().Contains(search)).Select(x => new AutocompleteResult(x.Version, x.Version)).ToList());
+        }
+    }
+    
+    public class McCustomVersionSuggestions : AutocompleteHandler
+    {
+        public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction,
+            IParameterInfo parameter, IServiceProvider services)
+        {
+            McServerService service = services.GetRequiredService<McServerService>();
+            string search = (string)autocompleteInteraction.Data.Current.Value;
+            search = search.ToLower();
+            
+            return AutocompletionResult.FromSuccess(service.Versions.Where(x => !x.UsesMaps).Where(x => x.Version.ToLower().Contains(search)).Select(x => new AutocompleteResult(x.Version, x.Version)).ToList());
         }
     }
 }

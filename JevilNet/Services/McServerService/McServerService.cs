@@ -24,11 +24,11 @@ public class McServerService
         Maps = await MapsGet.Get();
     }
 
-    public async Task<StatusGet> GetConfig() => await StatusGet.Get();
+    public async Task<StatusGet> GetStatus() => await StatusGet.Get();
 
     public async Task SetState(bool state)
     {
-        StatusGet status = await GetConfig();
+        StatusGet status = await GetStatus();
         if (state)
         {
             if (!(status.TextStatus is "Stopped" or "Dead"))
@@ -40,7 +40,7 @@ public class McServerService
                 throw new Exception("Minecraft server is not ready yet, or not running");
         }
 
-        await StatusPost.Post(state);
+        await StatusPut.Post(state);
     }
 
     public async Task<VersionsGet> SetVersion(string version)
@@ -48,11 +48,11 @@ public class McServerService
         if (Versions.All(x => x.Version != version))
             throw new Exception("Version does not exist on server");
         
-        var status = await GetConfig();
+        var status = await GetStatus();
         if (!status.IsOffline)
             throw new Exception("Server needs to be offline to set a new version");
                 
-        await VersionsPost.Post(version);
+        await VersionsPut.Post(version);
         return Versions.Find(x => x.Version == version)!;
     }
 
@@ -61,11 +61,11 @@ public class McServerService
         if (Maps.All(x => x.Name != map))
             throw new Exception("Map does not exist on server");
 
-        var status = await GetConfig();
+        var status = await GetStatus();
         if (!status.IsOffline)
             throw new Exception("Server needs to be offline to set a new map");
         
-        await MapsPost.Post(map);
+        await MapsPut.Post(map);
         return Maps.Find(x => x.Name == map)!;
     }
 
@@ -75,6 +75,7 @@ public class McServerService
             throw new Exception("Version does not exist on server");
 
         await MapsNewPost.Post(name, version);
+        await Reload();
     }
 
     public async Task UploadMap(string mapName, string mcVersion, string url, bool readOnly = false)
@@ -87,13 +88,47 @@ public class McServerService
         var response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
         await MapsUploadPost.Post(mapName, mcVersion, await response.Content.ReadAsStreamAsync(), readOnly);
+        await Reload();
+    }
+
+    public record MapChangeResponse(MapsGet Map, VersionsGet OldVersion, VersionsGet NewVersion);
+    public async Task<MapChangeResponse> ChangeMapVersion(string mapName, string newVersion)
+    {
+        MapsGet? map = Maps.Find(x => x.Name == mapName);
+        if (map == null)
+            throw new Exception("Map not found");
+
+        VersionsGet? oldVersion = Versions.Find(x => x.Version == map.MinecraftVersion);
+        if (oldVersion == null)
+            throw new Exception("Old version not found? Please reload");
+
+        VersionsGet? newVer = Versions.Find(x => x.Version == newVersion);
+        if (newVer == null)
+            throw new Exception("New version not found");
+
+        if (oldVersion == newVer)
+            throw new Exception($"Map is already set to use version {oldVersion.Version}");
+
+        await MapsNameVersionPut.Put(map.Name, newVer.Version);
+        await Reload();
+        return new(map, oldVersion, newVer);
+    }
+
+    public async Task DeleteMap(string mapName)
+    {
+        MapsGet? map = Maps.Find(x => x.Name == mapName);
+        if (map == null)
+            throw new Exception("Map not found");
+
+        await MapsDelete.Delete(map.Name);
+        await Reload();
     }
 
     private async void SetMcStatus(object? obj)
     {
         try
         {
-            var status = await GetConfig();
+            var status = await GetStatus();
 
             if (status.TextStatus == "Ready")
             {
