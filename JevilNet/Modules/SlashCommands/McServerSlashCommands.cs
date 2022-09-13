@@ -18,64 +18,19 @@ public class McServerSlashCommands : SlashCommandBase
     [SlashCommand("status", "Get the current status of the minecraft server")]
     public async Task Status(bool sendInChannel = false)
     {
-        var config = await McServerService.GetStatus();
-        string mapName = (config.Map == null) 
-            ? "No map has been selected" 
-            : (config.Version?.UsesMaps ?? true) 
-                ? $"Map{(((config.Map?.ReadOnly ?? false) && (config.Version?.UsesMaps ?? true)) ? " (read-only)" : "")}: {config.Map?.Name ?? "(???)"}" 
-                : "This minecraft version does not support custom maps";
-        string serverVersion = $"Minecraft Version: {config.Version?.Version ?? "(???)"}";
-        string playersOnline = (config.OnlinePlayers.Count <= 0)
-            ? "There are no players online"
-            : $"There are {config.OnlinePlayers.Count} player(s) online: {string.Join(", ", config.OnlinePlayers)}";
-        string message = "";
-
-        switch (config.TextStatus)
-        {
-            case "Stopped":
-                message = $"Server is stopped";
-                break;
-            case "Initialising":
-                message = "Server is being created";
-                break;
-            case "Started":
-                message = "Server has been started, waiting until ready";
-                break;
-            case "Ready":
-                message = $"Server is ready. Connect at ip `152.70.57.126`";
-                break;
-            case "Stopping":
-                message = "Server is stopping";
-                break;
-            case "Dead":
-                message = $"Server has crashed!";
-                break;
-        }
-
-        message += $"\n\n{mapName}\n{serverVersion}\n{playersOnline}";
-
-        if (config.Map?.HasResourcePack ?? false)
-            message += $"\n[This map has a resource pack available](http://152.70.57.126:4624/Maps/resources/{HttpUtility.UrlEncode(config.Map.Name)})";
-
-        EmbedBuilder builder = new();
-        builder.WithTitle("JevilServer");
-        if (config.IsOffline)
-            builder.WithColor(255, 0, 0);
-        else
-            builder.WithColor(0, 255, 0);
-        builder.WithDescription(message);
+        Embed embed = await BuildEmbed();
 
         if (sendInChannel)
-            await me.Respond(embed: builder.Build());
+            await me.Respond(embed: embed);
         else
-            await me.RespondEphermeral(embed: builder.Build());
+            await me.RespondEphermeral(embed: embed);
     }
 
     [SlashCommand("reload", "Reload maps and versions")]
     public async Task Reload()
     {
         await McServerService.Reload();
-        await me.RespondEphermeral("Reload complete!");
+        await me.RespondEphermeral("Reload complete!", await BuildEmbed());
     }
 
     [SlashCommand("custom_version", "Set the server version")]
@@ -87,7 +42,7 @@ public class McServerSlashCommands : SlashCommandBase
         if (!set.UsesMaps)
             append = "Note this minecraft version does not support custom maps";
         
-        await me.RespondEphermeral($"Set minecraft version to {version}\n{append}");
+        await me.RespondEphermeral($"Set minecraft version to {version}\n{append}", await BuildEmbed());
     }
 
     [SlashCommand("map", "Set the server map")]
@@ -102,7 +57,7 @@ public class McServerSlashCommands : SlashCommandBase
         if (set.ReadOnly)
             append += "\nMap is ready only. Any changes made to the map will be lost after a reboot";
             
-        await me.RespondEphermeral($"Set minecraft map to {map}\n{append.Trim()}");
+        await me.RespondEphermeral($"Set minecraft map to {map}\n{append.Trim()}", await BuildEmbed());
     }
 
     [SlashCommand("on", "Turn the minecraft server on")]
@@ -123,21 +78,21 @@ public class McServerSlashCommands : SlashCommandBase
         }
         
         await McServerService.SetState(true);
-        await me.RespondEphermeral(message.Trim());
+        await me.RespondEphermeral(message.Trim(), await BuildEmbed());
     }
     
     [SlashCommand("off", "Turn the minecraft server off")]
     public async Task SetStateOff()
     {
         await McServerService.SetState(false);
-        await me.RespondEphermeral($"Turned server off");
+        await me.RespondEphermeral($"Turned server off", await BuildEmbed());
     }
 
     [SlashCommand("new", "Create a new map. Think before you type, there's no way to delete this")]
     public async Task CreateNewMap(string name, [Autocomplete(typeof(McVersionSuggestions))] string version)
     {
         await McServerService.CreateMap(name, version);
-        await me.RespondEphermeral($"Created new map");
+        await me.RespondEphermeral($"Created new map", await BuildEmbed());
     }
 
     [SlashCommand("upload", "Upload a map to the server. Needs to be a .zip file containing a 'world' folder")]
@@ -160,7 +115,7 @@ public class McServerSlashCommands : SlashCommandBase
     public async Task ChangeMapVersion([Autocomplete(typeof(McMapSuggestions))] string name, [Autocomplete(typeof(McVersionSuggestions))] string version)
     {
         var res = await McServerService.ChangeMapVersion(name, version);
-        await me.RespondEphermeral($"Changed Map {res.Map.Name} from Version {res.OldVersion.Version} to Version {res.NewVersion.Version}");
+        await me.RespondEphermeral($"Changed Map {res.Map.Name} from Version {res.OldVersion.Version} to Version {res.NewVersion.Version}", await BuildEmbed());
     }
 
     [SlashCommand("delete", "Owner only. Deletes a map from the server")]
@@ -208,5 +163,57 @@ public class McServerSlashCommands : SlashCommandBase
             
             return AutocompletionResult.FromSuccess(service.Versions.Where(x => !x.UsesMaps).Where(x => x.Version.ToLower().Contains(search)).Select(x => new AutocompleteResult(x.Version, x.Version)).ToList());
         }
+    }
+
+    private async Task<Embed> BuildEmbed()
+    {
+        var config = await McServerService.GetStatus();
+        string mapName = (config.Map == null) 
+            ? "No map has been selected" 
+            : (config.Version?.UsesMaps ?? true) 
+                ? $"Map{(((config.Map?.ReadOnly ?? false) && (config.Version?.UsesMaps ?? true)) ? " (read-only)" : "")}: {config.Map?.Name ?? "(???)"}" 
+                : "This minecraft version does not support custom maps";
+        string serverVersion = $"Minecraft Version: {config.Version?.Version ?? "(???)"}";
+        string playersOnline = (config.OnlinePlayers.Count <= 0)
+            ? "There are no players online"
+            : $"There are {config.OnlinePlayers.Count} player(s) online: {string.Join(", ", config.OnlinePlayers)}";
+        string message = "";
+
+        switch (config.TextStatus)
+        {
+            case "Stopped":
+                message = $"Server is stopped";
+                break;
+            case "Initialising":
+                message = "Server is being created";
+                break;
+            case "Started":
+                message = "Server has been started, waiting until ready";
+                break;
+            case "Ready":
+                message = $"Server is ready. Connect at ip `152.70.57.126`";
+                break;
+            case "Stopping":
+                message = "Server is stopping";
+                break;
+            case "Dead":
+                message = $"Server has crashed!";
+                break;
+        }
+
+        message += $"\n\n{mapName}\n{serverVersion}\n{playersOnline}";
+
+        if (config.Map?.HasResourcePack ?? false)
+            message += $"\n[This map has a resource pack available](http://152.70.57.126:4624/Maps/resources/{HttpUtility.UrlEncode(config.Map.Name)})";
+
+        EmbedBuilder builder = new();
+        builder.WithTitle("JevilServer");
+        if (config.IsOffline)
+            builder.WithColor(255, 0, 0);
+        else
+            builder.WithColor(0, 255, 0);
+        builder.WithDescription(message);
+
+        return builder.Build();
     }
 }
