@@ -119,6 +119,7 @@ public class McServerSlashCommands : SlashCommandBase
     }
 
     [SlashCommand("delete", "Owner only. Deletes a map from the server")]
+    [RequireOwner]
     public async Task DeleteMap([Autocomplete(typeof(McMapSuggestions))] string name)
     {
         await McServerService.DeleteMap(name);
