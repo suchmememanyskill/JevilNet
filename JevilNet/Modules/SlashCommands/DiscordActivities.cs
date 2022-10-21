@@ -17,18 +17,24 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
     public IConfiguration Config { get; set; }
 
     public static readonly List<DiscordActivity> activities = new()
-    {
+    { // Taken from https://gist.github.com/GeneralSadaf/42d91a2b6a93a7db7a39208f2d8b53ad
         new("YouTube Watch Together",  "880218394199220334"),
         new("Poker Night", "755827207812677713", PremiumTier.Tier1),
         new("Betrayal.io", "773336526917861400"),
         new("Fishington.io", "814288819477020702"),
         new("Chess in the Park", "832012774040141894", PremiumTier.Tier1),
+        new ("Sketch Heads",  "902271654783242291"),
         new ("Letter League",  "879863686565621790", PremiumTier.Tier1),
         new ("Word Snacks",  "879863976006127627"),
         new ("SpellCast",  "852509694341283871", PremiumTier.Tier1),
         new ("Checkers in the park",  "832013003968348200", PremiumTier.Tier1),
-        new ("Sketch Heads",  "902271654783242291"),
-        new ("Ocho",  "832025144389533716", PremiumTier.Tier1),
+        new ("Blazing 8s",  "832025144389533716", PremiumTier.Tier1),
+        new("Putt Party", "945737671223947305", PremiumTier.Tier1),
+        new("Land-io", "903769130790969345", PremiumTier.Tier1),
+        new("Bobble League", "947957217959759964", PremiumTier.Tier1),
+        new("Ask Away", "976052223358406656"),
+        new("Know What I Meme", "950505761862189096"),
+        new("Bash Out", "1006584476094177371", PremiumTier.Tier1),
     };
 
     [SlashCommand("voiceactivity", "Creates an invite for a discord voice activity")]
@@ -77,8 +83,12 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
             if (context.Guild == null)
                 return AutocompletionResult.FromError(new Exception("Guild is null"));
             
+            string search = (string)autocompleteInteraction.Data.Current.Value;
+            search = search.ToLower();
+            
             return AutocompletionResult.FromSuccess(activities
                 .Where(x => x.tier <= context.Guild.PremiumTier)
+                .Where(x => x.displayName.ToLower().Contains(search))
                 .Select(x => new AutocompleteResult(x.displayName, x.appId))
                 .ToList());
         }
