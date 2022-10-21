@@ -83,11 +83,18 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
             if (context.Guild == null)
                 return AutocompletionResult.FromError(new Exception("Guild is null"));
             
+            bool showAll = false;
             string search = (string)autocompleteInteraction.Data.Current.Value;
             search = search.ToLower();
-            
+
+            if (search.StartsWith("!"))
+            {
+                search = search[1..];
+                showAll = true;
+            }
+
             return AutocompletionResult.FromSuccess(activities
-                .Where(x => x.tier <= context.Guild.PremiumTier)
+                .Where(x => showAll || x.tier <= context.Guild.PremiumTier)
                 .Where(x => x.displayName.ToLower().Contains(search))
                 .Select(x => new AutocompleteResult(x.displayName, x.appId))
                 .ToList());
