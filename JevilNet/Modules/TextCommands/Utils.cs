@@ -222,13 +222,4 @@ public class Utils : ModuleBase<SocketCommandContext>
 
         await ReplyAsync(string.Join("\n", gens.OrderByDescending(x => x.Item2).Select((x, i) => $"#{i + 1}: {x.Item1} HP, {x.Item2} Initiative")));
     }
-
-    [Command("testa")]
-    public async Task TestA()
-    {
-        if (Context.User is SocketGuildUser user)
-        {
-            await ReplyAsync(user.PremiumSince?.ToString() ?? "Premium since is null");
-        }
-    }
 }
