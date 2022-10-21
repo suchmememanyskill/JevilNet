@@ -60,6 +60,8 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
 
             ApiResponseChannelInvite parsedResposne = JsonConvert.DeserializeObject<ApiResponseChannelInvite>(response)!;
 
+            string premiumMessage = (activity.tier >= PremiumTier.Tier1) ? $"\nNeeds Guild boost tier {(int)activity.tier} or the user needs nitro to play" : "";
+            
             EmbedBuilder builder = new EmbedBuilder()
                 .WithAuthor(Context.User)
                 .WithThumbnailUrl(
@@ -69,7 +71,7 @@ public class DiscordActivities : InteractionModuleBase<SocketInteractionContext>
                 .WithColor(Color.Orange)
                 .WithTitle(parsedResposne.App.Name)
                 .WithDescription(
-                    $"[Click here to join the activity in {voice.Name}!](https://discord.com/invite/{parsedResposne.Code})");
+                    $"[Click here to join the activity in {voice.Name}!](https://discord.com/invite/{parsedResposne.Code}){premiumMessage}");
 
             await RespondAsync(embed: builder.Build());
         }
