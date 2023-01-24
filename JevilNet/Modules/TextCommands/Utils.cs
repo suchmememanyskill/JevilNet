@@ -144,7 +144,7 @@ public class Utils : ModuleBase<SocketCommandContext>
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardOutput = true;
         p.StartInfo.FileName = "deluge-console";
-        p.StartInfo.Arguments = $"add -p {validDelugeLocations[location]} {magnetUrl}";
+        p.StartInfo.Arguments = $"add --path {validDelugeLocations[location]} {magnetUrl}";
 
         p.Start();
         string output = await p.StandardOutput.ReadToEndAsync();
