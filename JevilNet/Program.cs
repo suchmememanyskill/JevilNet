@@ -55,6 +55,7 @@ class Program
 
         var client = services.GetRequiredService<DiscordSocketClient>();
         var commands = services.GetRequiredService<InteractionService>();
+        var emote = services.GetRequiredService<EmoteService>();
 
         client.Log += LogAsync;
         commands.Log += LogAsync;
@@ -72,7 +73,7 @@ class Program
             }
             else
             {
-                await commands.RegisterCommandsGloballyAsync(true);
+                //await commands.RegisterCommandsGloballyAsync(true);
                 Console.WriteLine("Setting commands on all servers...");
             }
 
@@ -84,6 +85,8 @@ class Program
             IChannel c = await client.GetChannelAsync(configuration.GetValue<ulong>("logChannel"));
             if (c is ITextChannel d)
                 await d.SendBlockAsync(startMessage);
+            
+            client.ChannelUpdated += async (before, after) => Console.WriteLine("sup");
         };
 
         // Here we can initialize the service that will register and execute our commands
@@ -119,7 +122,6 @@ class Program
             .AddSingleton<ImageRequestService>()
             .AddSingleton<ArbitraryEditService>()
             .AddSingleton<GiftService>()
-            .AddSingleton<McServerService>()
             .BuildServiceProvider();
 
     static bool IsDebug ( )
