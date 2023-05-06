@@ -31,6 +31,20 @@ public class Utils : InteractionModuleBase<SocketInteractionContext>
         await RespondAsync("Message sent", ephemeral: true);
     }
 
+    [SlashCommand("nick", "Change the nickname of another user")]
+    [RequireContext(ContextType.Guild)]
+    public async Task Nick(IUser user, string newNick)
+    {
+        IGuildUser guildUser = user as IGuildUser;
+
+        await guildUser!.ModifyAsync(x =>
+        {
+            x.Nickname = newNick;
+        });
+
+        await RespondAsync("Nickname set", ephemeral: true);
+    }
+
     [SlashCommand("game", "Sets the playing text on the bot")]
     public async Task SetGame(string game = "")
     {
