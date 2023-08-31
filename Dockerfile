@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/dotnet/runtime:7.0
 WORKDIR /app
-COPY /tmp/Build/* ./
+COPY build/* ./
 
 ENTRYPOINT ["dotnet", "JevilNet.dll"]

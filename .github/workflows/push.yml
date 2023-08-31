@@ -27,7 +27,9 @@ jobs:
     - name: Build
       run: |
         cd JevilNet
-        dotnet publish -o /tmp/Build -p:Configuration=Release
+        dotnet publish -o ../build -p:Configuration=Release
+        cd ..
+        ls -la
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
