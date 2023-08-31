@@ -29,8 +29,6 @@ jobs:
         cd JevilNet
         dotnet publish -o ../build -p:Configuration=Release
         cd ..
-        ls -la
-        pwd
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -48,3 +46,4 @@ jobs:
         tags: ghcr.io/suchmememanyskill/jevilnet:latest
         platforms: linux/amd64,linux/arm64
         push: true
+        context: .
