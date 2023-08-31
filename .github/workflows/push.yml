@@ -30,6 +30,7 @@ jobs:
         dotnet publish -o ../build -p:Configuration=Release
         cd ..
         ls -la
+        pwd
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
