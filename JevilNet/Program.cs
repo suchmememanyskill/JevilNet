@@ -105,10 +105,10 @@ class Program
     static ServiceProvider ConfigureServices ( IConfiguration configuration )
         => new ServiceCollection()
             .AddSingleton(configuration)
-            .AddSingleton(x => new DiscordSocketConfig()
+            .AddSingleton(x => new DiscordSocketClient(new DiscordSocketConfig()
             {
                 GatewayIntents = GatewayIntents.All
-            })
+            }))
             .AddSingleton<EmoteService>()
             .AddSingleton<CommandService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
