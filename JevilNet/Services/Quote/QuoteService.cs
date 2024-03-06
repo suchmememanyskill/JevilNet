@@ -60,7 +60,40 @@ public class QuoteService : UserSpecificGuildStorage<ulong, string>
             if (serverQuotes.CustomStorage <= 0)
                 continue;
 
-            IChannel channel = await client.GetChannelAsync(serverQuotes.CustomStorage);
+            IChannel channel = null;
+            try
+            {
+                channel = await client.GetChannelAsync(serverQuotes.CustomStorage);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+
+                try
+                {
+                    var guild = client.GetGuild(serverQuotes.ServerId);
+                    foreach (var socketGuildChannel in guild.Channels)
+                    {
+                        Console.WriteLine($"{socketGuildChannel.Id}: {socketGuildChannel.Name}");
+                        if (socketGuildChannel.Id == serverQuotes.CustomStorage)
+                        {
+                            channel = socketGuildChannel;
+                            break;
+                        }
+                    }
+
+                    if (channel == null)
+                    {
+                        throw new Exception("Could not find channel in guild");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    continue;
+                }
+            }
+            
             if (channel is ITextChannel textChannel)
             {
                 var messages = await textChannel.GetMessagesAsync(1).FlattenAsync();
