@@ -62,7 +62,7 @@ public class QuoteService : UserSpecificGuildStorage<ulong, string>
 
             IChannel channel = null;
             try
-            {
+            { 
                 channel = await client.GetChannelAsync(serverQuotes.CustomStorage);
             }
             catch (Exception e)

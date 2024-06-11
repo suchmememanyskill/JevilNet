@@ -27,7 +27,7 @@ public class Quote : TextCommandBase, IQuoteInterface
 
     [Command("add")]
     [Summary("Adds a quote")]
-    [RequireRole("Quoter")]
+    [Attributes.RequireRole("Quoter")]
     public async Task AddQuote([Remainder] string quote) => await me.AddQuoteInterface(quote);
 
     [Command("list")]
