@@ -124,13 +124,20 @@ public class GiftService : UserSpecificGuildStorage<Empty, GiftUserStorage>
 
     private void GetSteamApps()
     {
-        using (HttpClient client = new())
+        try {
+            using (HttpClient client = new())
+            {
+                var result = client.GetAsync(new Uri("https://api.steampowered.com/ISteamApps/GetAppList/v2/")).GetAwaiter().GetResult();
+                string textResponse = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                SteamGames games = JsonConvert.DeserializeObject<SteamGames>(textResponse);
+                SteamApps = games.AppList.Apps;
+                Console.WriteLine($"Loaded {SteamApps.Count} steam games");
+            }
+        } 
+        catch (Exception e)
         {
-            var result = client.GetAsync(new Uri("https://api.steampowered.com/ISteamApps/GetAppList/v2/")).GetAwaiter().GetResult();
-            string textResponse = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            SteamGames games = JsonConvert.DeserializeObject<SteamGames>(textResponse);
-            SteamApps = games.AppList.Apps;
-            Console.WriteLine($"Loaded {SteamApps.Count} steam games");
+            Console.WriteLine("Failed to load steam games");
+            SteamApps = new List<SteamApp>();
         }
     }
 }
